@@ -1,0 +1,103 @@
+/* Section Isolation CSS 
+   This file adds strong isolation between sections to prevent layout issues */
+
+/* Ensure main container has proper layout */
+main {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Force section isolation with strong containment */
+section {
+    contain: content; /* Strong isolation for performance */
+    isolation: isolate; /* Creates a new stacking context */
+    position: relative;
+    width: 100%;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Strong visibility controls that override any other styles */
+.hidden-section {
+    display: none !important;
+    visibility: hidden !important;
+    position: absolute !important;
+    opacity: 0 !important;
+    clip: rect(0, 0, 0, 0) !important;
+    clip-path: inset(50%) !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+}
+
+/* Active section - ensure full visibility */
+.active-section {
+    display: block !important;
+    visibility: visible !important;
+    position: relative !important;
+    opacity: 1 !important;
+    clip: auto !important;
+    clip-path: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    pointer-events: auto !important;
+    z-index: 1 !important;
+}
+
+/* Make active navigation links more prominent */
+#main-nav a.active {
+    background-color: #3a7bd5;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    font-weight: bold;
+}
+
+/* Modal styles that override section isolation */
+#modal-container {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    z-index: 10000 !important; /* Very high z-index to be above everything */
+}
+
+#modal-container.modal-visible {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    justify-content: center !important;
+    align-items: center !important;
+    pointer-events: auto !important;
+}
+
+#modal-container.modal-hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.modal-content {
+    background-color: white !important;
+    border-radius: 6px !important;
+    padding: 2rem !important;
+    max-width: 500px !important;
+    width: 90% !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    position: relative !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: visible !important;
+} 

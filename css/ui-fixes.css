@@ -1,0 +1,115 @@
+/* UI Fixes - Addresses specific UI issues */
+
+/* Fix table layout for assets and liabilities */
+.finance-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.finance-table th, 
+.finance-table td {
+    padding: 8px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+/* Adjust column widths */
+.finance-table th:first-child,
+.finance-table td:first-child {
+    width: 35%;
+    word-wrap: break-word;
+}
+
+.finance-table th:nth-child(2),
+.finance-table td:nth-child(2) {
+    width: 35%;
+    word-wrap: break-word;
+}
+
+/* Keep buttons side by side */
+.item-actions {
+    display: flex !important;
+    gap: 5px;
+    justify-content: flex-end;
+    min-width: 110px; /* Minimum width to prevent buttons from stacking */
+}
+
+.edit-btn, .delete-btn {
+    flex-shrink: 0; /* Prevent buttons from shrinking */
+    padding: 4px 8px !important;
+    min-width: 50px; /* Minimum width for buttons */
+}
+
+/* Improve overall table appearance */
+#assets-table, #liabilities-table {
+    margin-bottom: 20px;
+}
+
+.finance-item {
+    border-bottom: 1px solid #eee;
+}
+
+/* Make sure tables don't overflow their containers */
+.table-container {
+    overflow-x: auto;
+}
+
+/* Net Worth change indicators */
+.positive-change {
+    color: #28a745 !important;
+    font-weight: bold;
+}
+
+.negative-change {
+    color: #dc3545 !important;
+    font-weight: bold;
+}
+
+/* Chart styles */
+.charts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.chart-wrapper {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 15px;
+    min-height: 300px;
+}
+
+.chart-wrapper h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: #333;
+    text-align: center;
+}
+
+.chart-wrapper canvas {
+    width: 100% !important;
+    height: 280px !important;
+}
+
+.chart-wrapper.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Trends section specific styles */
+#trends .chart-wrapper {
+    margin-bottom: 25px;
+}
+
+#trends .full-width canvas {
+    height: 250px !important;
+}
+
+#net-worth-growth-chart,
+#asset-categories-time-chart,
+#growth-vs-benchmarks-chart {
+    margin: auto;
+} 
