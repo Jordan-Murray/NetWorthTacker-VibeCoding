@@ -8,13 +8,9 @@
     <link rel="stylesheet" href="css/styles.css">
     <!-- Section isolation should override other styles -->
     <link rel="stylesheet" href="css/section-isolation.css">
-    <!-- Load page diagnostics and fixers next -->
+    <!-- Load page fixers next -->
     <script src="js/page-fixer.js"></script>
     <script src="js/navigation-fix.js"></script>
-    <!-- Add app initializer before app scripts -->
-    <script src="js/app-initializer.js"></script>
-    <!-- Add direct UI manipulation -->
-    <script src="js/direct-ui.js"></script>
     <!-- Add modal fix script -->
     <script src="js/modal-fix.js"></script>
     <!-- Add Chart.js for charts -->
@@ -102,7 +98,8 @@
                     <select id="year-select">
                         <!-- Will be populated by JavaScript -->
                     </select>
-                    <button id="add-year">+ Add Year</button>
+                    <button id="add-year-btn">+ Add Year</button>
+                    <button id="delete-year-btn">Delete Year</button>
                 </div>
             </div>
 
@@ -137,6 +134,7 @@
                         <thead>
                             <tr>
                                 <th>Category</th>
+                                <th>Item</th>
                                 <th>Value</th>
                                 <th>Actions</th>
                             </tr>
@@ -146,7 +144,7 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td>Total Liabilities</td>
+                                <td colspan="2">Total Liabilities</td>
                                 <td id="liabilities-total">£0.00</td>
                                 <td></td>
                             </tr>
@@ -188,11 +186,10 @@
             
             <div class="goals-container">
                 <div class="milestone-tracker">
-                    <h3>Net Worth Milestones</h3>
-                    <div id="milestones-list">
+                    <h3>Net Worth Milestones <button id="add-milestone" class="add-btn">+ Add Milestone</button></h3>
+                    <div id="milestones-container">
                         <!-- Will be populated by JavaScript -->
                     </div>
-                    <button id="add-milestone" class="add-btn">+ Add Milestone</button>
                 </div>
             </div>
         </section>
@@ -209,12 +206,12 @@
                             <tr>
                                 <th>Date</th>
                                 <th>Company</th>
+                                <th>Title</th>
                                 <th>Salary</th>
-                                <th>Increase %</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="salary-table-body">
                             <!-- Will be populated by JavaScript -->
                         </tbody>
                     </table>
@@ -442,6 +439,6 @@
     </div>
 
     <!-- Main Application Scripts -->
-    <script src="js/app.js" type="module"></script>
+    <script src="js/main.js" type="module"></script>
 </body>
 </html> 
