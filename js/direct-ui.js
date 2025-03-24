@@ -1,14 +1,11 @@
 // Direct UI script - directly renders UI components based on localStorage
-console.log('Direct UI script loaded');
 
 document.addEventListener('DOMContentLoaded', () => {
     // Wait for DOM to be fully ready
     setTimeout(() => {
         if (document.getElementById('year-select')) {
-            console.log('Year select found, setting up direct UI renderer');
             setupDirectUI();
         } else {
-            console.log('Year select not found yet, waiting');
             setTimeout(setupDirectUI, 500);
         }
         
@@ -189,133 +186,95 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Get current data from localStorage
     function getCurrentData() {
-        const data = localStorage.getItem('netWorthData') || '{}';
         try {
-            // Format the JSON with pretty printing
-            const parsedData = JSON.parse(data);
-            return JSON.stringify(parsedData, null, 2);
+            return JSON.parse(localStorage.getItem('netWorthData') || '{}');
         } catch (e) {
-            console.error('Error parsing data:', e);
-            return data;
+            return {};
         }
     }
     
     function setupDirectUI() {
-        // Add event listener to year selector
-        const yearSelect = document.getElementById('year-select');
-        if (!yearSelect) {
-            console.log('Year selector not found, aborting direct UI setup');
+        const yearSelector = document.getElementById('year-select');
+        if (!yearSelector) {
             return;
         }
         
         // Set up forced render on year change
-        yearSelect.addEventListener('change', () => {
+        yearSelector.addEventListener('change', () => {
             setTimeout(() => {
-                renderFinancialTables(yearSelect.value);
+                renderFinancialTables(yearSelector.value);
                 updateDashboardSummary();
             }, 50);
         });
         
         // Initial render
         setTimeout(() => {
-            if (yearSelect.options.length > 0) {
-                renderFinancialTables(yearSelect.value);
+            if (yearSelector.options.length > 0) {
+                renderFinancialTables(yearSelector.value);
                 updateDashboardSummary();
             }
         }, 300);
         
-        // Add event listener to ensure year select has data
+        // Listen for data update events
         document.addEventListener('yearDataUpdated', (e) => {
-            console.log('Year data updated event received');
-            const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
-            const yearToSelect = e.detail?.year || 
-                                (yearSelect.value && data.years[yearSelect.value]) ? 
-                                yearSelect.value : 
-                                new Date().getFullYear().toString();
-            
-            if (data.years && data.years[yearToSelect]) {
-                renderFinancialTables(yearToSelect);
-                updateDashboardSummary();
-            }
-        });
-        
-        // Add event listener for milestone updates
-        document.addEventListener('milestonesUpdated', () => {
-            console.log('Milestones update event received');
-            renderMilestones();
-        });
-        
-        // Add event listener for salary data updates
-        document.addEventListener('salaryDataUpdated', () => {
-            console.log('Salary data update event received');
-            renderSalaryTable();
-        });
-        
-        // Initial render of milestones
-        setTimeout(() => {
-            renderMilestones();
-            renderSalaryTable();
-        }, 300);
-        
-        // Initial render of charts
-        setTimeout(() => {
+            renderFinancialTables(yearSelector.value);
+            updateTotals(yearSelector.value);
+            updateDashboardSummary();
             renderDashboardCharts();
-            renderTrendsCharts();
-        }, 500);
+        });
         
-        // Add event listener for refresh trends button
+        document.addEventListener('milestonesUpdated', () => {
+            renderMilestones();
+        });
+        
+        document.addEventListener('salaryDataUpdated', () => {
+            renderSalaryTable();
+            renderSalaryChart();
+        });
+        
+        // Setup manual trend charts refresh
         const refreshTrendsBtn = document.getElementById('refresh-trends-btn');
         if (refreshTrendsBtn) {
-            refreshTrendsBtn.addEventListener('click', function() {
-                console.log('Manual refresh of trend charts requested');
+            refreshTrendsBtn.addEventListener('click', () => {
                 renderTrendsCharts();
             });
         }
         
-        // Setup budgeting functionality
+        // Initial render
+        renderFinancialTables(yearSelector.value);
+        updateTotals(yearSelector.value);
+        updateDashboardSummary();
+        renderDashboardCharts();
+        renderTrendsCharts();
+        renderMilestones();
+        renderSalaryTable();
+        renderSalaryChart();
         setupBudgetingCalculators();
     }
     
     // Function to render financial tables
     function renderFinancialTables(year) {
-        if (!year) return;
+        const data = getCurrentData();
         
-        console.log('Directly rendering financial tables for year:', year);
-        
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
         if (!data.years || !data.years[year]) {
-            console.log('No data for year', year);
             return;
         }
         
-        const yearData = data.years[year];
-        
-        // Render assets table
         renderAssetsTable(year);
-        
-        // Render liabilities table
         renderLiabilitiesTable(year);
-        
-        // Update totals
-        updateTotals(year);
     }
     
     function renderAssetsTable(yearId) {
-        console.log(`Rendering assets table for year ${yearId}`);
-        
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
-        if (!data.years || !data.years[yearId]) return;
-        
         const assetsTable = document.getElementById('assets-table');
+        
         if (!assetsTable) {
-            console.log('Assets table element not found');
             return;
         }
         
         // Clear existing rows
         assetsTable.innerHTML = '';
         
-        const yearData = data.years[yearId];
+        const yearData = getCurrentData().years[yearId];
         if (!yearData.assets || yearData.assets.length === 0) {
             // No assets
             assetsTable.innerHTML = '<tr><td colspan="3" class="empty-list">No assets added yet</td></tr>';
@@ -364,21 +323,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function renderLiabilitiesTable(yearId) {
-        console.log(`Rendering liabilities table for year ${yearId}`);
-        
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
-        if (!data.years || !data.years[yearId]) return;
-        
         const liabilitiesTable = document.getElementById('liabilities-table');
+        
         if (!liabilitiesTable) {
-            console.log('Liabilities table element not found');
             return;
         }
         
         // Clear existing rows
         liabilitiesTable.innerHTML = '';
         
-        const yearData = data.years[yearId];
+        const yearData = getCurrentData().years[yearId];
         if (!yearData.liabilities || yearData.liabilities.length === 0) {
             // No liabilities
             liabilitiesTable.innerHTML = '<tr><td colspan="3" class="empty-list">No liabilities added yet</td></tr>';
@@ -444,22 +398,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to edit an item
     function editItem(id, type) {
-        console.log(`Editing ${type} with id: ${id}`);
+        const data = getCurrentData();
+        const yearSelect = document.getElementById('year-select');
+        const currentYear = yearSelect ? yearSelect.value : null;
         
-        const currentYear = document.getElementById('year-select')?.value;
-        if (!currentYear) return;
-        
-        // Load data from localStorage
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
         if (!data.years || !data.years[currentYear]) return;
-        
-        const yearData = data.years[currentYear];
         
         if (type === 'asset') {
             // Find the asset
-            const asset = yearData.assets.find(a => a.id === id);
+            const asset = data.years[currentYear].assets.find(a => a.id === id);
             if (!asset) {
-                console.error('Asset not found');
                 return;
             }
             
@@ -507,9 +455,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         if (category && name && !isNaN(value) && value >= 0) {
                             // Find and update the asset
-                            const assetIndex = yearData.assets.findIndex(a => a.id === assetId);
+                            const assetIndex = data.years[currentYear].assets.findIndex(a => a.id === assetId);
                             if (assetIndex !== -1) {
-                                yearData.assets[assetIndex] = {
+                                data.years[currentYear].assets[assetIndex] = {
                                     id: assetId,
                                     category,
                                     name,
@@ -541,9 +489,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (type === 'liability') {
             // Find the liability
-            const liability = yearData.liabilities.find(l => l.id === id);
+            const liability = data.years[currentYear].liabilities.find(l => l.id === id);
             if (!liability) {
-                console.error('Liability not found');
                 return;
             }
             
@@ -587,9 +534,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         if (category && !isNaN(value) && value >= 0) {
                             // Find and update the liability
-                            const liabilityIndex = yearData.liabilities.findIndex(l => l.id === liabilityId);
+                            const liabilityIndex = data.years[currentYear].liabilities.findIndex(l => l.id === liabilityId);
                             if (liabilityIndex !== -1) {
-                                yearData.liabilities[liabilityIndex] = {
+                                data.years[currentYear].liabilities[liabilityIndex] = {
                                     id: liabilityId,
                                     category,
                                     value
@@ -623,13 +570,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to delete an item
     function deleteItem(id, type) {
-        console.log(`Deleting ${type} with id: ${id}`);
+        const data = getCurrentData();
+        const yearSelect = document.getElementById('year-select');
+        const currentYear = yearSelect ? yearSelect.value : null;
         
-        const currentYear = document.getElementById('year-select')?.value;
-        if (!currentYear) return;
-        
-        // Load data from localStorage
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
         if (!data.years || !data.years[currentYear]) return;
         
         // Create confirmation modal
@@ -690,9 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to update totals in the tables
     function updateTotals(year) {
-        if (!year) return;
-        
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
+        const data = getCurrentData();
         if (!data.years || !data.years[year]) return;
         
         const yearData = data.years[year];
@@ -724,9 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to update dashboard summary
     function updateDashboardSummary() {
-        console.log('Updating dashboard summary');
-        
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
+        const data = getCurrentData();
         if (!data.years) return;
         
         // Get the current year
@@ -829,11 +769,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to render charts on dashboard
     function renderDashboardCharts() {
-        console.log('Rendering dashboard charts');
+        const data = getCurrentData();
         
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
-        if (!data.years || Object.keys(data.years).length === 0) {
-            console.log('No data for charts');
+        if (!data.years) {
             return;
         }
         
@@ -846,10 +784,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to render Net Worth History chart
     function renderNetWorthChart(data) {
-        // Get the canvas element
-        const chartCanvas = document.getElementById('net-worth-chart');
-        if (!chartCanvas) {
-            console.log('Net worth chart canvas not found');
+        const canvas = document.getElementById('net-worth-chart');
+        
+        if (!canvas) {
             return;
         }
         
@@ -887,7 +824,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Create new chart
-        window.netWorthChart = new Chart(chartCanvas, {
+        window.netWorthChart = new Chart(canvas, {
             type: 'bar',
             data: {
                 labels: years,
@@ -964,19 +901,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to render Asset Diversity chart
     function renderAssetDiversityChart(data) {
-        // Get the canvas element
-        const chartCanvas = document.getElementById('asset-diversity-chart');
-        if (!chartCanvas) {
-            console.log('Asset diversity chart canvas not found');
+        const canvas = document.getElementById('asset-diversity-chart');
+        
+        if (!canvas) {
             return;
         }
         
-        // Get current year
-        const currentYear = document.getElementById('year-select')?.value || 
-                           new Date().getFullYear().toString();
-                            
-        if (!data.years[currentYear]) {
-            console.log('No data for current year');
+        const yearSelect = document.getElementById('year-select');
+        const currentYear = yearSelect ? yearSelect.value : null;
+        
+        if (!currentYear || !data.years[currentYear]) {
             return;
         }
         
@@ -1006,7 +940,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // Create empty chart
-            window.assetDiversityChart = new Chart(chartCanvas, {
+            window.assetDiversityChart = new Chart(canvas, {
                 type: 'pie',
                 data: {
                     labels: ['No Assets'],
@@ -1055,7 +989,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Create new chart
-        window.assetDiversityChart = new Chart(chartCanvas, {
+        window.assetDiversityChart = new Chart(canvas, {
             type: 'doughnut',
             data: {
                 labels: categories,
@@ -1091,57 +1025,42 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to render charts on trends page
     function renderTrendsCharts() {
-        console.log('Rendering trends charts');
+        const data = getCurrentData();
+        
+        if (!data.years) {
+            return;
+        }
+        
+        // Filter out years with no data
+        const validYears = Object.keys(data.years).filter(year => {
+            if (!data.years[year]) {
+                return false;
+            }
+            
+            // Check if year has assets and liabilities
+            return data.years[year].assets || data.years[year].liabilities;
+        });
+        
+        if (validYears.length === 0) {
+            return;
+        }
         
         try {
-            // Get data from localStorage
-            const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
-            
-            // Validate data structure
-            if (!data.years) {
-                console.log('No years data for trends charts');
-                return;
-            }
-            
-            // Check for empty string key in years and remove it
-            if (data.years['']) {
-                console.log('Found empty year key in data, removing it');
-                delete data.years[''];
-                // Save the corrected data back to localStorage
-                localStorage.setItem('netWorthData', JSON.stringify(data));
-            }
-            
-            // Check if there are any valid years
-            const validYears = Object.keys(data.years).filter(year => year && year.trim() !== '');
-            if (validYears.length === 0) {
-                console.log('No valid years for trends charts');
-                return;
-            }
-            
-            console.log('Data available for trend charts:', validYears);
-            
-            // Render each chart, with separate try-catch for each
-            try {
-                renderNetWorthGrowthChart(data);
-            } catch (error) {
-                console.error('Error rendering net worth growth chart:', error);
-            }
-            
-            try {
-                renderAssetCategoriesOverTimeChart(data);
-            } catch (error) {
-                console.error('Error rendering asset categories chart:', error);
-            }
-            
-            try {
-                renderGrowthVsBenchmarksChart(data);
-            } catch (error) {
-                console.error('Error rendering growth vs benchmarks chart:', error);
-            }
-            
-            console.log('All trend charts rendering complete');
+            renderNetWorthGrowthChart(data);
         } catch (error) {
-            console.error('Error in renderTrendsCharts:', error);
+            // Error handling
+        }
+        
+        try {
+            renderAssetCategoriesOverTimeChart(data);
+        } catch (error) {
+            // Error handling
+        }
+        
+        try {
+            renderGrowthVsBenchmarksChart(data);
+        } catch (error) {
+            // Error handling
         }
     }
     
@@ -1152,7 +1071,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderNetWorthGrowthChart(data) {
         const chartCanvas = document.getElementById('net-worth-growth-chart');
         if (!chartCanvas) {
-            console.log('Net worth growth chart canvas not found');
             return;
         }
         
@@ -1160,7 +1078,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const years = Object.keys(data.years)
             .filter(year => year && year.trim() !== '')
             .sort();
-        console.log('Years for net worth growth chart (after filtering):', years);
         
         // Need at least 2 years for growth analysis
         if (years.length < 2) {
@@ -1334,21 +1251,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to render Asset Categories Over Time chart (Stacked area chart)
     function renderAssetCategoriesOverTimeChart(data) {
-        console.log('Attempting to render asset categories time chart');
         const chartCanvas = document.getElementById('asset-categories-time-chart');
         if (!chartCanvas) {
-            console.error('Asset categories time chart canvas not found, ID: asset-categories-time-chart');
             return;
         }
         
-        // Get years and sort chronologically, filtering out any empty strings
+        // Get sorted years
         const years = Object.keys(data.years)
             .filter(year => year && year.trim() !== '')
             .sort();
-        console.log('Years for asset categories chart (after filtering):', years);
         
         if (years.length === 0) {
-            console.log('No years data available for asset categories chart');
             if (window.assetCategoriesTimeChart instanceof Chart) {
                 window.assetCategoriesTimeChart.destroy();
             }
@@ -1395,7 +1308,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         const categories = Array.from(uniqueCategories).sort();
-        console.log('Asset categories found:', categories);
         
         // Chart colors - a nice palette for visualization
         const backgroundColors = [
@@ -1508,22 +1420,18 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to render Growth vs Benchmarks chart (Comparison line chart)
     function renderGrowthVsBenchmarksChart(data) {
-        console.log('Attempting to render growth vs benchmarks chart');
         const chartCanvas = document.getElementById('growth-vs-benchmarks-chart');
         if (!chartCanvas) {
-            console.error('Growth vs benchmarks chart canvas not found, ID: growth-vs-benchmarks-chart');
             return;
         }
         
-        // Get years and sort chronologically, filtering out any empty strings
+        // Get sorted years
         const years = Object.keys(data.years)
             .filter(year => year && year.trim() !== '')
             .sort();
-        console.log('Years for benchmarks chart (after filtering):', years);
         
         // Need at least 2 years for growth comparison
         if (years.length < 2) {
-            console.log('Not enough years (need at least 2) for benchmarks chart');
             if (window.growthVsBenchmarksChart instanceof Chart) {
                 window.growthVsBenchmarksChart.destroy();
             }
@@ -1711,14 +1619,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to render milestones
     function renderMilestones() {
-        console.log('Rendering milestones');
-        
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
+        const data = getCurrentData();
         if (!data.milestones) return;
         
         const milestonesList = document.getElementById('milestones-list');
         if (!milestonesList) {
-            console.log('Milestones list element not found');
             return;
         }
         
@@ -1782,10 +1687,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to delete a milestone
     function deleteMilestone(id) {
-        console.log(`Deleting milestone with id: ${id}`);
-        
-        // Load data from localStorage
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
+        const data = getCurrentData();
         if (!data.milestones) return;
         
         // Create confirmation modal
@@ -1836,14 +1738,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to render the salary table
     function renderSalaryTable() {
-        console.log('Rendering salary table');
-        
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
+        const data = getCurrentData();
         if (!data.salaryHistory) return;
         
         const salaryTableBody = document.querySelector('#salary-table tbody');
         if (!salaryTableBody) {
-            console.log('Salary table element not found');
             return;
         }
         
@@ -1918,14 +1817,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to edit a salary entry
     function editSalaryEntry(id) {
-        console.log(`Editing salary entry with id: ${id}`);
-        
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
+        const data = getCurrentData();
         if (!data.salaryHistory) return;
         
         const entry = data.salaryHistory.find(entry => entry.id === id);
         if (!entry) {
-            console.log(`Salary entry with id ${id} not found`);
             return;
         }
         
@@ -2010,12 +1906,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to delete a salary entry
     function deleteSalaryEntry(id) {
-        console.log(`Deleting salary entry with id: ${id}`);
-        
         const confirmDelete = confirm('Are you sure you want to delete this salary entry?');
         if (!confirmDelete) return;
         
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
+        const data = getCurrentData();
         if (!data.salaryHistory) return;
         
         // Remove the entry
@@ -2050,15 +1944,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to render the salary chart
     function renderSalaryChart() {
-        console.log('Rendering salary chart');
-        
         const chartCanvas = document.getElementById('salary-growth-chart');
         if (!chartCanvas) {
-            console.log('Salary chart canvas not found');
             return;
         }
         
-        const data = JSON.parse(localStorage.getItem('netWorthData') || '{}');
+        const data = getCurrentData();
         if (!data.salaryHistory || data.salaryHistory.length === 0) {
             // No data to display
             return;
@@ -2079,7 +1970,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Check if Chart.js is available
         if (typeof Chart === 'undefined') {
-            console.error('Chart.js is not loaded');
             return;
         }
         
@@ -2332,5 +2222,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }).format(value);
     }
 });
-
-console.log('Direct UI script loaded');

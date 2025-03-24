@@ -30,7 +30,6 @@ export class DataStore {
                     this.data.emergencyFundGoal = 3;
                 }
             } catch (e) {
-                console.error('Error loading data from localStorage:', e);
                 this.initializeDefaultData();
             }
         } else {

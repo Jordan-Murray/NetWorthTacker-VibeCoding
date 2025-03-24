@@ -363,8 +363,6 @@ function setupAddSalaryButton(dataStore, ui, chartManager) {
         
         // Add new event listener to the cloned button
         newAddSalaryBtn.addEventListener('click', () => {
-            console.log('Add salary button clicked');
-            
             // Get current date for the default value of the month input
             const now = new Date();
             const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -393,9 +391,7 @@ function setupAddSalaryButton(dataStore, ui, chartManager) {
             // Use the enhanced showModal function (now using Toggle Modal technique)
             if (typeof window.showModal === 'function') {
                 window.showModal(modalContent, 'add-salary');
-                console.log('Using global showModal function - should be reliable now');
             } else {
-                console.error('Global showModal function not found - this should not happen');
                 alert('An error occurred. Please refresh the page and try again.');
             }
         });

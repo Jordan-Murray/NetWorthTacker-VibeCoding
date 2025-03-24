@@ -1,5 +1,4 @@
 // Modal Fix Script - ensures modals display correctly
-console.log('Modal fix script loaded');
 
 // Helper function to generate unique IDs
 function generateId() {
@@ -11,21 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalContainer = document.getElementById('modal-container');
     
     if (!modalContainer) {
-        console.error('Modal container not found');
         return;
     }
     
-    console.log('Setting up modal override system');
-    
     // Override modal display methods for compatibility with section isolation
     window.showModal = function(content, modalType) {
-        console.log('Showing modal with content', content ? 'provided' : 'missing', 'for type', modalType);
-        
         const modalContainer = document.getElementById('modal-container');
         const modalBody = document.getElementById('modal-body');
         
         if (!modalContainer || !modalBody) {
-            console.error('Modal container or body not found');
             return;
         }
         
@@ -86,20 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 4. Force body style to prevent scrolling
         document.body.style.overflow = 'hidden';
-        
-        console.log('Modal should now be visible:', 
-            modalContainer.style.display,
-            modalContainer.style.visibility,
-            modalContainer.style.opacity
-        );
     };
     
     window.hideModal = function() {
-        console.log('Hiding modal');
-        
         const modalContainer = document.getElementById('modal-container');
         if (!modalContainer) {
-            console.error('Modal container not found');
             return;
         }
         
@@ -132,19 +116,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // 4. Restore body scrolling
         document.body.style.overflow = '';
-        
-        console.log('Modal should now be hidden');
     };
     
     // Function to set up action buttons based on modal type
     function setupModalActions(modalType) {
-        console.log('Setting up modal actions for', modalType);
-        
         // Set up common cancel buttons that just close the modal
         const cancelButtons = document.querySelectorAll('.cancel-btn');
         cancelButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                console.log('Cancel button clicked');
                 window.hideModal();
             });
         });
@@ -185,7 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function reloadPageAfterDelay(delay = 300) {
         window.hideModal();
         setTimeout(() => {
-            console.log('Reloading page to refresh UI');
             window.location.reload();
         }, delay);
     }
@@ -198,8 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const year = parseInt(yearInput.value, 10);
                 
                 if (year && year >= 1900 && year <= 2100) {
-                    console.log('Adding new year:', year);
-                    
                     // Try to add year using the dataStore if available
                     try {
                         if (window.appInstance && window.appInstance.dataStore) {
@@ -222,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 };
                                 
                                 localStorage.setItem('netWorthData', JSON.stringify(data));
-                                console.log(`Year ${year} added to localStorage`);
                                 
                                 // Now update the year selector directly
                                 const yearSelect = document.getElementById('year-select');
@@ -248,12 +223,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     // Trigger a change event to update displays
                                     const event = new Event('change');
                                     yearSelect.dispatchEvent(event);
-                                    
-                                    console.log(`Year selector updated, most recent year selected: ${mostRecentYear}`);
                                 }
                             } else {
-                                console.log(`Year ${year} already exists`);
-                                
                                 // Sort and select the most recent year
                                 const yearSelect = document.getElementById('year-select');
                                 if (yearSelect) {
@@ -270,8 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                     // Trigger a change event to update displays
                                     const event = new Event('change');
                                     yearSelect.dispatchEvent(event);
-                                    
-                                    console.log(`Most recent year selected: ${mostRecentYear}`);
                                 }
                             }
                         }
@@ -279,7 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Hide the modal
                         window.hideModal();
                     } catch (error) {
-                        console.error('Error adding year:', error);
                         alert('Error adding year: ' + error.message);
                         window.hideModal();
                     }
@@ -300,8 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const value = parseFloat(valueInput);
                 
                 if (category && name && !isNaN(value) && value >= 0) {
-                    console.log('Adding new asset:', { category, name, value });
-                    
                     try {
                         const yearSelect = document.getElementById('year-select');
                         const currentYear = yearSelect ? yearSelect.value : new Date().getFullYear().toString();
@@ -336,7 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             data.years[currentYear].assets.push(newAsset);
                             localStorage.setItem('netWorthData', JSON.stringify(data));
-                            console.log(`Asset added to year ${currentYear}`);
                             
                             // Trigger direct UI update
                             window.hideModal();
@@ -350,7 +315,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         window.hideModal();
                     } catch (error) {
-                        console.error('Error adding asset:', error);
                         alert('Error adding asset: ' + error.message);
                         window.hideModal();
                     }
@@ -370,8 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const value = parseFloat(valueInput);
                 
                 if (category && !isNaN(value) && value >= 0) {
-                    console.log('Adding new liability:', { category, value });
-                    
                     try {
                         const yearSelect = document.getElementById('year-select');
                         const currentYear = yearSelect ? yearSelect.value : new Date().getFullYear().toString();
@@ -405,7 +367,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             data.years[currentYear].liabilities.push(newLiability);
                             localStorage.setItem('netWorthData', JSON.stringify(data));
-                            console.log(`Liability added to year ${currentYear}`);
                             
                             // Trigger direct UI update
                             window.hideModal();
@@ -419,7 +380,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         window.hideModal();
                     } catch (error) {
-                        console.error('Error adding liability:', error);
                         alert('Error adding liability: ' + error.message);
                         window.hideModal();
                     }
@@ -439,8 +399,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const amount = parseFloat(amountInput);
                 
                 if (!isNaN(amount) && amount > 0 && name) {
-                    console.log('Adding new milestone:', { amount, name });
-                    
                     try {
                         if (window.appInstance && window.appInstance.dataStore) {
                             window.appInstance.dataStore.addMilestone(amount, name);
@@ -464,17 +422,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             data.milestones.sort((a, b) => a.amount - b.amount);
                             
                             localStorage.setItem('netWorthData', JSON.stringify(data));
-                            console.log(`Milestone ${name} added to localStorage`);
-                            
-                            // Trigger a custom event to update the UI
-                            const event = new CustomEvent('milestonesUpdated');
-                            document.dispatchEvent(event);
                         }
                         
                         // Hide the modal
                         window.hideModal();
                     } catch (error) {
-                        console.error('Error adding milestone:', error);
                         alert('Error adding milestone: ' + error.message);
                         window.hideModal();
                     }
@@ -495,8 +447,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const amount = parseFloat(amountInput);
                 
                 if (dateInput && company && !isNaN(amount) && amount >= 0) {
-                    console.log('Adding new salary entry:', { dateInput, company, amount });
-                    
                     try {
                         // Convert the input (YYYY-MM) to a Date object
                         const date = new Date(dateInput);
@@ -539,17 +489,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             data.salaryHistory = sortedEntries;
                             
                             localStorage.setItem('netWorthData', JSON.stringify(data));
-                            console.log(`Salary entry for ${company} added to localStorage`);
-                            
-                            // Trigger a custom event to update the UI
-                            const event = new CustomEvent('salaryDataUpdated');
-                            document.dispatchEvent(event);
                         }
                         
                         // Hide the modal using our reliable method
                         window.hideModal();
                     } catch (error) {
-                        console.error('Error adding salary entry:', error);
                         alert('Error adding salary entry: ' + error.message);
                         window.hideModal();
                     }
@@ -557,8 +501,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert('Please fill all fields with valid values');
                 }
             });
-        } else {
-            console.error('Save salary button not found in modal');
         }
     }
     
@@ -566,7 +508,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeButton = modalContainer.querySelector('.close-modal');
     if (closeButton) {
         closeButton.addEventListener('click', () => {
-            console.log('Close button clicked');
             window.hideModal();
         });
     }
@@ -574,7 +515,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add global event listener for closing modal on ESC key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modalContainer.style.display !== 'none') {
-            console.log('ESC key pressed, hiding modal');
             window.hideModal();
         }
     });
@@ -582,7 +522,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup click outside to close
     modalContainer.addEventListener('click', (e) => {
         if (e.target === modalContainer) {
-            console.log('Clicked outside modal content, hiding modal');
             window.hideModal();
         }
     });
@@ -601,15 +540,12 @@ document.addEventListener('DOMContentLoaded', () => {
         modalTriggers.forEach(trigger => {
             const button = document.getElementById(trigger.id);
             if (button) {
-                console.log(`Setting up modal trigger for ${trigger.id}`);
-                
                 // Ensure we don't double-attach events
                 const newButton = button.cloneNode(true);
                 button.parentNode.replaceChild(newButton, button);
                 
                 newButton.addEventListener('click', (e) => {
                     e.preventDefault();
-                    console.log(`${trigger.id} clicked, showing modal`);
                     window.showModal(trigger.content, trigger.type);
                 });
             }
@@ -746,7 +682,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Check if we now have valid select options
                 const yearSelect = document.getElementById('year-select');
                 if (yearSelect && yearSelect.options.length > 0) {
-                    console.log('Year data detected, app is initialized');
                     // App is now initialized
                     observer.disconnect();
                 }
@@ -759,7 +694,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     } catch (e) {
-        console.warn('Could not set up app instance capture:', e);
+        // Failed to set up app instance capture
     }
     
     // Set up modal triggers
@@ -803,6 +738,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     `;
     document.head.appendChild(modalStyle);
-    
-    console.log('Modal fix script initialization complete');
 }); 

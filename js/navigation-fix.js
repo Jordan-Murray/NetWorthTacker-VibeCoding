@@ -4,12 +4,9 @@
  */
 
 // Enhanced Navigation Fix
-console.log('Navigation fix script loaded');
 
 // Function to handle navigation
 function handleNavigation(targetId) {
-    console.log('Handling navigation to:', targetId);
-    
     // Get all sections
     const allSections = document.querySelectorAll('main > section');
     
@@ -26,8 +23,6 @@ function handleNavigation(targetId) {
     const targetSection = document.getElementById(targetId);
     
     if (targetSection) {
-        console.log('Target section found:', targetId);
-        
         // Show the target section with multiple visibility methods
         targetSection.style.display = 'block';
         targetSection.style.visibility = 'visible';
@@ -42,17 +37,8 @@ function handleNavigation(targetId) {
         // Scroll to the section
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // Log visibility status
-        console.log('Section visibility:', 
-            targetSection.style.display, 
-            targetSection.style.visibility, 
-            targetSection.style.opacity,
-            targetSection.classList.contains('active-section')
-        );
-        
         // If showing dashboard, refresh the charts
         if (targetId === 'dashboard' && window.renderDashboardCharts) {
-            console.log('Dashboard section activated, refreshing charts');
             setTimeout(() => {
                 window.renderDashboardCharts();
             }, 100);
@@ -60,21 +46,16 @@ function handleNavigation(targetId) {
         
         // If showing trends section, refresh the trend charts
         if (targetId === 'trends' && window.renderTrendsCharts) {
-            console.log('Trends section activated, refreshing trend charts');
-            
             // Try multiple times with increasing delays to ensure charts load
             setTimeout(() => {
-                console.log('First attempt to render trend charts');
                 window.renderTrendsCharts();
             }, 100);
             
             setTimeout(() => {
-                console.log('Second attempt to render trend charts');
                 window.renderTrendsCharts();
             }, 500);
             
             setTimeout(() => {
-                console.log('Third attempt to render trend charts');
                 window.renderTrendsCharts();
             }, 1000);
         }
@@ -91,7 +72,6 @@ function handleNavigation(targetId) {
             }
         });
     } else {
-        console.error('Target section not found:', targetId);
         // If target section not found, default to dashboard
         if (targetId !== 'dashboard') {
             handleNavigation('dashboard');
@@ -101,8 +81,6 @@ function handleNavigation(targetId) {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing navigation');
-    
     // Handle initial hash if present
     const initialHash = window.location.hash.substring(1) || 'dashboard';
     handleNavigation(initialHash);
@@ -113,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
         link.addEventListener('click', (e) => {
             e.preventDefault(); // Prevent default link behavior
             const targetId = link.getAttribute('href').substring(1);
-            console.log('Navigation link clicked:', targetId);
             
             // Update URL hash without triggering the hashchange event
             history.pushState(null, null, `#${targetId}`);
@@ -126,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen for popstate (back/forward buttons)
     window.addEventListener('popstate', () => {
         const currentHash = window.location.hash.substring(1) || 'dashboard';
-        console.log('Hash changed to:', currentHash);
         handleNavigation(currentHash);
     });
     
@@ -146,6 +122,4 @@ document.addEventListener('DOMContentLoaded', () => {
             section.classList.add('active-section');
         }
     });
-    
-    console.log('Navigation initialization complete');
 }); 
