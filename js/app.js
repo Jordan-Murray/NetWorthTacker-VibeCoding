@@ -362,7 +362,9 @@ function setupAddSalaryButton(dataStore, ui, chartManager) {
         addSalaryBtn.parentNode.replaceChild(newAddSalaryBtn, addSalaryBtn);
         
         // Add new event listener to the cloned button
-        newAddSalaryBtn.addEventListener('click', () => {
+        newAddSalaryBtn.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent default button action
+            
             // Get current date for the default value of the month input
             const now = new Date();
             const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -379,6 +381,10 @@ function setupAddSalaryButton(dataStore, ui, chartManager) {
                     <input type="text" id="salary-company" placeholder="Company name" />
                 </div>
                 <div class="form-group">
+                    <label for="salary-title">Title:</label>
+                    <input type="text" id="salary-title" placeholder="Job title" />
+                </div>
+                <div class="form-group">
                     <label for="salary-amount">Salary (£):</label>
                     <input type="number" id="salary-amount" min="0" step="0.01" />
                 </div>
@@ -388,11 +394,66 @@ function setupAddSalaryButton(dataStore, ui, chartManager) {
                 </div>
             `;
             
-            // Use the enhanced showModal function (now using Toggle Modal technique)
+            // Show the modal with our reliable function
             if (typeof window.showModal === 'function') {
                 window.showModal(modalContent, 'add-salary');
             } else {
-                alert('An error occurred. Please refresh the page and try again.');
+                // Fallback if showModal is not available
+                const modalContainer = document.getElementById('modal-container');
+                const modalBody = document.getElementById('modal-body');
+                
+                if (modalContainer && modalBody) {
+                    // Set the modal content
+                    modalBody.innerHTML = modalContent;
+                    
+                    // Show the modal - remove modal-hidden first, then add modal-visible
+                    modalContainer.classList.remove('modal-hidden');
+                    modalContainer.classList.add('modal-visible');
+                    
+                    // Set up the cancel button
+                    const cancelBtn = document.getElementById('cancel-salary');
+                    if (cancelBtn) {
+                        cancelBtn.addEventListener('click', () => {
+                            modalContainer.classList.add('modal-hidden');
+                            modalContainer.classList.remove('modal-visible');
+                        });
+                    }
+                    
+                    // Set up the save button
+                    const saveBtn = document.getElementById('save-salary');
+                    if (saveBtn) {
+                        saveBtn.addEventListener('click', () => {
+                            const dateInput = document.getElementById('salary-date').value;
+                            const company = document.getElementById('salary-company').value;
+                            const title = document.getElementById('salary-title').value;
+                            const amountInput = document.getElementById('salary-amount').value;
+                            const amount = parseFloat(amountInput);
+                            
+                            if (dateInput && company && !isNaN(amount) && amount >= 0) {
+                                try {
+                                    // Convert the input (YYYY-MM) to a Date object
+                                    const date = new Date(dateInput);
+                                    
+                                    if (dataStore) {
+                                        dataStore.addSalaryEntry(date, company, title, amount);
+                                        ui.renderSalaryTable();
+                                        if (chartManager) {
+                                            chartManager.updateSalaryGrowthChart();
+                                        }
+                                    }
+                                    
+                                    // Hide the modal
+                                    modalContainer.classList.add('modal-hidden');
+                                    modalContainer.classList.remove('modal-visible');
+                                } catch (error) {
+                                    alert('Error adding salary entry: ' + error.message);
+                                }
+                            } else {
+                                alert('Please fill all fields with valid values');
+                            }
+                        });
+                    }
+                }
             }
         });
     }

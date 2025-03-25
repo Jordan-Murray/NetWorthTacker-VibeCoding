@@ -1,3 +1,5 @@
+console.log('MAIN.JS LOADED - BEFORE IMPORTS');
+
 /**
  * Main Application
  * Entry point for the Net Worth Tracker application
@@ -10,8 +12,12 @@ import { initSalaryTrackerUI } from './modules/salaryTrackerUI.js';
 import { initSettingsIcon } from './modules/dataManagementUI.js';
 import { initFormHandlers } from './modules/formHandlerUI.js';
 
+console.log('MAIN.JS LOADED - AFTER IMPORTS');
+
 // Main initialization function
 function initializeApp() {
+    console.log('Initializing application...');
+    
     // Set up UI tabs
     initTabs();
     
@@ -38,6 +44,8 @@ function initializeApp() {
     
     // Initial rendering of trends charts
     renderTrendsCharts();
+    
+    console.log('Application initialization complete');
 }
 
 // Handle tab switching
@@ -79,6 +87,7 @@ function initTabs() {
 }
 
 // Initialize the application when DOM is fully loaded
+console.log('Setting up DOMContentLoaded event listener');
 document.addEventListener('DOMContentLoaded', initializeApp);
 
 // Handle year selection changes globally

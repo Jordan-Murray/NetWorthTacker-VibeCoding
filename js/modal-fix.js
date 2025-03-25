@@ -145,6 +145,10 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'add-salary':
                 setupAddSalaryActions();
                 break;
+            case 'data-management':
+                // The data management module will handle its own actions
+                console.log('Data management modal opened');
+                break;
             case 'edit-asset':
                 // Edit asset handlers are set up in direct-ui.js
                 break;
@@ -443,16 +447,17 @@ document.addEventListener('DOMContentLoaded', () => {
             saveSalaryBtn.addEventListener('click', () => {
                 const dateInput = document.getElementById('salary-date').value;
                 const company = document.getElementById('salary-company').value;
+                const title = document.getElementById('salary-title').value;
                 const amountInput = document.getElementById('salary-amount').value;
                 const amount = parseFloat(amountInput);
                 
-                if (dateInput && company && !isNaN(amount) && amount >= 0) {
+                if (dateInput && company && title && !isNaN(amount) && amount >= 0) {
                     try {
                         // Convert the input (YYYY-MM) to a Date object
                         const date = new Date(dateInput);
                         
                         if (window.appInstance && window.appInstance.dataStore) {
-                            window.appInstance.dataStore.addSalaryEntry(date, company, amount);
+                            window.appInstance.dataStore.addSalaryEntry(date, company, title, amount);
                             window.appInstance.ui.renderSalaryTable();
                             window.appInstance.chartManager.updateSalaryGrowthChart();
                         } else {
@@ -467,6 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 id: generateId(),
                                 date: date.toISOString(), // Store as ISO string for proper serialization
                                 company: company,
+                                title: title,
                                 amount: amount,
                                 increasePercent: 0 // Will be calculated
                             };
@@ -657,6 +663,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="form-group">
                 <label for="salary-company">Company:</label>
                 <input type="text" id="salary-company" placeholder="Company name" />
+            </div>
+            <div class="form-group">
+                <label for="salary-title">Title:</label>
+                <input type="text" id="salary-title" placeholder="Job title" />
             </div>
             <div class="form-group">
                 <label for="salary-amount">Salary (£):</label>

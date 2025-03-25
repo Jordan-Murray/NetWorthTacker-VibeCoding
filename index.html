@@ -438,7 +438,26 @@
         </div>
     </div>
 
+    <!-- Test Script (non-module) -->
+    <script src="js/import-export.js"></script>
+    
+    <!-- Module Test -->
+    <script src="js/module-test.js" type="module"></script>
+    
     <!-- Main Application Scripts -->
     <script src="js/main.js" type="module"></script>
+    
+    <!-- Simple Test Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            const settingsBtn = document.getElementById('settings-icon');
+            
+            if (settingsBtn) {
+                settingsBtn.addEventListener('click', function() {
+                });
+            }
+        });
+    </script>
 </body>
 </html> 
