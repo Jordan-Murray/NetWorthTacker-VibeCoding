@@ -216,34 +216,42 @@ function updateDocumentTitle(sectionId) {
 }
 
 /**
- * Update UI based on current section
- * @param {string} sectionId - ID of current section
+ * Update UI based on the current section
+ * @param {string} sectionId - ID of the current section
  */
 function updateUIForSection(sectionId) {
-    // Trigger section-specific UI updates
+    // Update UI based on section
     switch(sectionId) {
         case 'dashboard':
-            // Update dashboard charts
+            // Ensure dashboard charts are rendered
             if (typeof window.renderDashboardCharts === 'function') {
-                setTimeout(() => {
-                    window.renderDashboardCharts();
-                }, 100);
+                window.renderDashboardCharts();
             }
             break;
         case 'trends':
-            // Update trends charts
+            // Ensure trends charts are rendered
             if (typeof window.renderTrendsCharts === 'function') {
-                // Try multiple times with increasing delays to ensure charts load
-                setTimeout(() => {
-                    window.renderTrendsCharts();
-                }, 100);
-                
-                setTimeout(() => {
-                    window.renderTrendsCharts();
-                }, 500);
+                window.renderTrendsCharts();
             }
             break;
-        // Add other section-specific updates as needed
+        case 'assets-liabilities':
+            // Refresh financial tables
+            if (typeof window.refreshFinancialTables === 'function') {
+                window.refreshFinancialTables();
+            }
+            break;
+        case 'goals':
+            // Refresh milestones
+            if (typeof window.refreshMilestones === 'function') {
+                window.refreshMilestones();
+            }
+            break;
+        case 'salary-tracking':
+            // Refresh salary table
+            if (typeof window.refreshSalaryTable === 'function') {
+                window.refreshSalaryTable();
+            }
+            break;
     }
 }
 

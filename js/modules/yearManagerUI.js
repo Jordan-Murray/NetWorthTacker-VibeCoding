@@ -2,7 +2,7 @@
  * Year Manager UI Module
  * Handles year selection, adding new years, and related functionality
  */
-import { getCurrentData, saveData } from './dataService.js';
+import { getDataStore } from './enhancedDataService.js';
 import { renderFinancialTables } from './financialTablesUI.js';
 import { updateDashboardSummary } from './dashboardUI.js';
 // import { renderDashboardCharts } from './chartsUI.js';
@@ -20,7 +20,7 @@ export function initYearManager() {
  * @param {string} [selectedYear] - Year to select after populating (optional)
  */
 export function populateYearSelect(selectedYear) {
-    const data = getCurrentData();
+    const dataStore = getDataStore();
     const yearSelect = document.getElementById('year-select');
     
     if (!yearSelect) return;
@@ -32,22 +32,12 @@ export function populateYearSelect(selectedYear) {
     yearSelect.innerHTML = '';
     
     // Get all years
-    let years = [];
-    if (data.years) {
-        years = Object.keys(data.years).sort().reverse(); // Sort by year descending
-    }
+    const years = dataStore.getYears();
     
     // If no years exist, create the current year
     if (years.length === 0) {
-        const currentYear = new Date().getFullYear().toString();
-        if (!data.years) {
-            data.years = {};
-        }
-        data.years[currentYear] = {
-            assets: [],
-            liabilities: []
-        };
-        saveData(data);
+        const currentYear = new Date().getFullYear();
+        dataStore.addYear(currentYear);
         years.push(currentYear);
     }
     
@@ -60,7 +50,7 @@ export function populateYearSelect(selectedYear) {
     });
     
     // Set selected year (either the previously selected one or the newest)
-    if (currentSelection && years.includes(currentSelection)) {
+    if (currentSelection && years.includes(parseInt(currentSelection))) {
         yearSelect.value = currentSelection;
     } else {
         yearSelect.value = years[0]; // Default to first (most recent) year
@@ -84,16 +74,18 @@ function setupYearActions() {
     // Handle year selection change
     yearSelect.addEventListener('change', function() {
         const selectedYear = this.value;
+        const dataStore = getDataStore();
+        
+        // Update the current year in the data store
+        dataStore.setCurrentYear(parseInt(selectedYear));
         
         // Update UI components based on selected year
         renderFinancialTables(selectedYear);
         updateDashboardSummary();
-        // renderDashboardCharts();
         
         // Update delete button visibility (don't allow deleting the last year)
         if (deleteYearBtn) {
-            const data = getCurrentData();
-            const yearCount = data.years ? Object.keys(data.years).length : 0;
+            const yearCount = dataStore.getYears().length;
             deleteYearBtn.disabled = yearCount <= 1;
         }
     });
@@ -114,8 +106,8 @@ function setupYearActions() {
     
     // Initial update of delete button state
     if (deleteYearBtn) {
-        const data = getCurrentData();
-        const yearCount = data.years ? Object.keys(data.years).length : 0;
+        const dataStore = getDataStore();
+        const yearCount = dataStore.getYears().length;
         deleteYearBtn.disabled = yearCount <= 1;
     }
 }
@@ -177,7 +169,7 @@ function showAddYearModal() {
     }
     
     // Get existing years for the copy-from dropdown
-    const data = getCurrentData();
+    const dataStore = getDataStore();
     const copyFromSelect = document.getElementById('copy-from-year-select');
     
     if (copyFromSelect) {
@@ -187,8 +179,8 @@ function showAddYearModal() {
         }
         
         // Add options for each existing year
-        if (data.years) {
-            const years = Object.keys(data.years).sort().reverse();
+        if (dataStore.getYears()) {
+            const years = dataStore.getYears().sort().reverse();
             years.forEach(year => {
                 const option = document.createElement('option');
                 option.value = year;
@@ -229,35 +221,32 @@ function addNewYear() {
         return;
     }
     
-    const data = getCurrentData();
+    const dataStore = getDataStore();
     
     // Check if year already exists
-    if (data.years && data.years[newYear]) {
+    if (dataStore.getYears() && dataStore.getYears().includes(parseInt(newYear))) {
         alert('This year already exists in your data.');
         return;
     }
     
     // Initialize year data
-    if (!data.years) {
-        data.years = {};
+    if (!dataStore.getYears()) {
+        dataStore.addYear(parseInt(newYear));
     }
     
-    if (copyFromYear && data.years[copyFromYear]) {
+    if (copyFromYear && dataStore.getYears().includes(parseInt(copyFromYear))) {
         // Copy from existing year
-        const sourceYear = data.years[copyFromYear];
+        const sourceYear = dataStore.getYearData(parseInt(copyFromYear));
         
         // Deep clone the year data
-        data.years[newYear] = JSON.parse(JSON.stringify(sourceYear));
+        dataStore.addYear(parseInt(newYear), sourceYear);
     } else {
         // Create with empty data
-        data.years[newYear] = {
-            assets: [],
-            liabilities: []
-        };
+        dataStore.addYear(parseInt(newYear));
     }
     
     // Save and update UI
-    saveData(data);
+    dataStore.saveData();
     
     // Close modal
     const modal = bootstrap.Modal.getInstance(document.getElementById('add-year-modal'));

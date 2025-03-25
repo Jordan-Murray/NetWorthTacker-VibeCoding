@@ -15,10 +15,11 @@ import { initNavigation } from './modules/navigationModule.js';
 import { initModal } from './modules/modalModule.js';
 import { initCharts, renderDashboardCharts, renderTrendsCharts } from './modules/chartModule.js';
 import { initFinancialTables } from './modules/financialTablesUI.js';
-import { initMilestones } from './modules/milestonesUI.js';
-import { initSalaryTracker } from './modules/salaryTrackerUI.js';
+import { initMilestonesUI } from './modules/milestonesUI.js';
+import { initSalaryTrackerUI } from './modules/salaryTrackerUI.js';
 import { initYearManager } from './modules/yearManagerUI.js';
 import { initImportExport } from './modules/importExportModule.js';
+import { initDashboard } from './modules/dashboardUI.js';
 
 // Log application startup
 console.log('Net Worth Tracker initializing...');
@@ -42,8 +43,9 @@ function initializeApp() {
     // 4. Initialize UI components that don't depend on each other
     initYearManager();
     initFinancialTables();
-    initMilestones();
-    initSalaryTracker();
+    initMilestonesUI();
+    initSalaryTrackerUI();
+    initDashboard(); // Initialize dashboard
     
     // 5. Initialize charts after other UI is ready
     initCharts();
@@ -57,6 +59,10 @@ function initializeApp() {
     
     // 8. Set up event listeners for app-wide events
     setupGlobalEvents();
+    
+    // 9. Render initial charts
+    renderDashboardCharts();
+    renderTrendsCharts();
     
     // Log successful initialization
     console.log('Net Worth Tracker initialized successfully');

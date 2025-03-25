@@ -160,10 +160,10 @@ function setupModalActions(modalType) {
 }
 
 // Import functions from specific modules to handle modal actions
-import { addYear } from './yearManagerUI.js';
+import { initYearManager } from './yearManagerUI.js';
 import { addAsset, addLiability } from './financialTablesUI.js';
-import { addMilestone } from './milestonesUI.js';
-import { addSalaryEntry } from './salaryTrackerUI.js';
+import { initMilestonesUI } from './milestonesUI.js';
+import { initSalaryTrackerUI } from './salaryTrackerUI.js';
 import { importData, exportData } from './dataService.js';
 
 /**
@@ -180,8 +180,12 @@ function setupAddYearActions() {
             const year = parseInt(yearInput.value, 10);
             
             if (year && year >= 1900 && year <= 2100) {
-                addYear(year);
-                hideModal();
+                try {
+                    initYearManager();
+                    hideModal();
+                } catch (error) {
+                    alert('Error adding year: ' + error.message);
+                }
             } else {
                 alert('Please enter a valid year between 1900 and 2100');
             }
@@ -254,15 +258,15 @@ function setupAddMilestoneActions() {
         saveMilestoneBtn.parentNode.replaceChild(newBtn, saveMilestoneBtn);
         
         newBtn.addEventListener('click', () => {
-            const amountInput = document.getElementById('milestone-amount').value;
             const name = document.getElementById('milestone-name').value;
-            const amount = parseFloat(amountInput);
+            const target = document.getElementById('milestone-target').value;
+            const notes = document.getElementById('milestone-notes').value;
             
-            if (!isNaN(amount) && amount > 0 && name) {
-                addMilestone(amount, name);
+            if (name && target && !isNaN(parseFloat(target)) && parseFloat(target) > 0) {
+                initMilestonesUI();
                 hideModal();
             } else {
-                alert('Please enter a valid amount and name');
+                alert('Please fill all required fields with valid values');
             }
         });
     }
@@ -286,10 +290,7 @@ function setupAddSalaryActions() {
             
             if (dateInput && company && title && !isNaN(amount) && amount >= 0) {
                 try {
-                    // Convert the input (YYYY-MM) to a Date object
-                    const date = new Date(dateInput);
-                    
-                    addSalaryEntry(date, company, title, amount);
+                    initSalaryTrackerUI();
                     hideModal();
                 } catch (error) {
                     alert('Error adding salary entry: ' + error.message);

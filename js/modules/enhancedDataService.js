@@ -162,6 +162,30 @@ export class DataStore {
     }
     
     /**
+     * Set the current year
+     * @param {number} year - Year to set as current
+     * @returns {boolean} Success status
+     */
+    setCurrentYear(year) {
+        if (!this.data.years[year]) {
+            return false;
+        }
+        
+        this.data.currentYear = year;
+        this.saveData();
+        this.triggerEvent('yearChanged', { year });
+        return true;
+    }
+    
+    /**
+     * Get the current year
+     * @returns {number} Current year
+     */
+    getCurrentYear() {
+        return this.data.currentYear || this.getYears()[0];
+    }
+    
+    /**
      * Add a new year to track
      * @param {number} year - Year to add
      * @returns {boolean} Success status
