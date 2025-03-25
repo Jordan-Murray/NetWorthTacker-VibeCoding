@@ -4,19 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Net Worth Tracker</title>
+    <!-- CSS files -->
     <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/styles.css">
-    <!-- Section isolation should override other styles -->
     <link rel="stylesheet" href="css/section-isolation.css">
-    <!-- Load page fixers next -->
-    <script src="js/page-fixer.js"></script>
-    <script src="js/navigation-fix.js"></script>
-    <!-- Add modal fix script -->
-    <script src="js/modal-fix.js"></script>
-    <!-- Add Chart.js for charts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- UI Fixes CSS - Fixes specific UI issues -->
     <link rel="stylesheet" href="css/ui-fixes.css">
+    
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         /* Modal visibility control - these take precedence over other styles */
         #modal-container.modal-hidden {
@@ -437,27 +433,23 @@
             </div>
         </div>
     </div>
-
-    <!-- Test Script (non-module) -->
-    <script src="js/import-export.js"></script>
     
-    <!-- Module Test -->
-    <script src="js/module-test.js" type="module"></script>
-    
-    <!-- Main Application Scripts -->
+    <!-- Main Application Script - Module Version -->
     <script src="js/main.js" type="module"></script>
     
-    <!-- Simple Test Script -->
+    <!-- Fallback Script (non-module) - Loads if module version fails -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            
-            const settingsBtn = document.getElementById('settings-icon');
-            
-            if (settingsBtn) {
-                settingsBtn.addEventListener('click', function() {
-                });
+        // Wait for a short time to see if the module version initializes
+        setTimeout(function() {
+            // Check if main.js loaded properly
+            if (!window.mainScriptLoaded) {
+                console.log('Module version failed to load, using fallback script');
+                // Load the fallback script
+                const fallbackScript = document.createElement('script');
+                fallbackScript.src = 'js/fallback.js';
+                document.body.appendChild(fallbackScript);
             }
-        });
+        }, 1000); // Wait 1 second for module version
     </script>
 </body>
-</html> 
+</html>

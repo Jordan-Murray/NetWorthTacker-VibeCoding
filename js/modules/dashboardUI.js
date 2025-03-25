@@ -2,93 +2,74 @@
  * Dashboard UI Module
  * Handles the dashboard UI and summary display
  */
-import { getCurrentData } from './dataService.js';
+import { getDataStore } from './enhancedDataService.js';
 import { formatCurrency, calculatePercentChange } from './utils.js';
+
+/**
+ * Initialize the dashboard UI
+ */
+export function initDashboard() {
+    // Initial render
+    updateDashboardSummary();
+    
+    // Set up event listeners
+    const dataStore = getDataStore();
+    dataStore.addEventListener('dataUpdated', updateDashboardSummary);
+    dataStore.addEventListener('yearChanged', updateDashboardSummary);
+    
+    // Export for global access (backward compatibility)
+    window.refreshDashboard = updateDashboardSummary;
+}
 
 /**
  * Update the dashboard summary with the latest data
  */
 export function updateDashboardSummary() {
-    const data = getCurrentData();
-    if (!data.years) return;
+    const dataStore = getDataStore();
+    const years = dataStore.getYears();
+    
+    if (years.length === 0) return;
     
     // Get the current selected year
     const yearSelect = document.getElementById('year-select');
-    const currentYear = yearSelect ? yearSelect.value : null;
+    const currentYear = yearSelect ? yearSelect.value : years[0];
     
-    if (!currentYear || !data.years[currentYear]) return;
-    
-    // Get all years sorted chronologically
-    const years = Object.keys(data.years).sort();
+    if (!currentYear) return;
     
     // Find the index of the current year and previous year (if any)
-    const currentYearIndex = years.indexOf(currentYear);
+    const sortedYears = [...years].sort();
+    const currentYearIndex = sortedYears.indexOf(parseInt(currentYear));
     const hasPreviousYear = currentYearIndex > 0;
-    const previousYear = hasPreviousYear ? years[currentYearIndex - 1] : null;
+    const previousYear = hasPreviousYear ? sortedYears[currentYearIndex - 1] : null;
     
     // Calculate current net worth, assets, and liabilities
-    const netWorth = calculateNetWorth(data.years[currentYear]);
-    const totalAssets = calculateTotalAssets(data.years[currentYear]);
-    const totalLiabilities = calculateTotalLiabilities(data.years[currentYear]);
+    const netWorth = dataStore.getNetWorth(currentYear);
+    const totalAssets = dataStore.getTotalAssets(currentYear);
+    const totalLiabilities = dataStore.getTotalLiabilities(currentYear);
     
     // Calculate previous net worth for comparison
     let previousNetWorth = 0;
-    if (previousYear && data.years[previousYear]) {
-        previousNetWorth = calculateNetWorth(data.years[previousYear]);
+    if (previousYear) {
+        previousNetWorth = dataStore.getNetWorth(previousYear);
     }
     
     // Calculate debt-to-asset ratio
-    const debtAssetRatio = totalAssets > 0 ? (totalLiabilities / totalAssets) * 100 : 0;
+    const debtAssetRatio = dataStore.getDebtToAssetRatio(currentYear);
     
     // Update UI
-    updateNetWorthDisplay(netWorth, previousNetWorth);
+    updateNetWorthDisplay(netWorth, previousNetWorth, previousYear);
     updateAssetsDisplay(totalAssets);
     updateLiabilitiesDisplay(totalLiabilities);
     updateDebtRatioDisplay(debtAssetRatio);
 }
 
 /**
- * Calculate net worth based on year data
- * @param {Object} yearData - Data for a specific year
- * @returns {number} - The calculated net worth
- */
-function calculateNetWorth(yearData) {
-    if (!yearData) return 0;
-    
-    const totalAssets = calculateTotalAssets(yearData);
-    const totalLiabilities = calculateTotalLiabilities(yearData);
-    
-    return totalAssets - totalLiabilities;
-}
-
-/**
- * Calculate total assets based on year data
- * @param {Object} yearData - Data for a specific year
- * @returns {number} - The total assets value
- */
-function calculateTotalAssets(yearData) {
-    if (!yearData || !yearData.assets) return 0;
-    
-    return yearData.assets.reduce((total, asset) => total + parseFloat(asset.value || 0), 0);
-}
-
-/**
- * Calculate total liabilities based on year data
- * @param {Object} yearData - Data for a specific year
- * @returns {number} - The total liabilities value
- */
-function calculateTotalLiabilities(yearData) {
-    if (!yearData || !yearData.liabilities) return 0;
-    
-    return yearData.liabilities.reduce((total, liability) => total + parseFloat(liability.value || 0), 0);
-}
-
-/**
  * Update the net worth display
  * @param {number} netWorth - Current net worth
  * @param {number} previousNetWorth - Previous net worth for comparison
+ * @param {number|null} previousYear - Previous year (if any)
  */
-function updateNetWorthDisplay(netWorth, previousNetWorth) {
+function updateNetWorthDisplay(netWorth, previousNetWorth, previousYear) {
     const netWorthElement = document.getElementById('current-net-worth');
     const netWorthChangeElement = document.getElementById('net-worth-change');
     
@@ -96,14 +77,24 @@ function updateNetWorthDisplay(netWorth, previousNetWorth) {
         netWorthElement.textContent = formatCurrency(netWorth);
     }
     
-    if (netWorthChangeElement && previousNetWorth !== 0) {
-        const percentChange = calculatePercentChange(previousNetWorth, netWorth);
-        
-        netWorthChangeElement.textContent = `${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(1)}% from last year`;
-        netWorthChangeElement.className = 'change ' + (percentChange >= 0 ? 'positive' : 'negative');
-    } else if (netWorthChangeElement) {
-        netWorthChangeElement.textContent = 'No previous year data';
-        netWorthChangeElement.className = 'change';
+    if (netWorthChangeElement) {
+        if (previousNetWorth !== 0 && previousYear !== null) {
+            const percentChange = calculatePercentChange(previousNetWorth, netWorth);
+            
+            netWorthChangeElement.textContent = `${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(1)}% from ${previousYear}`;
+            
+            // Add class for styling
+            if (percentChange >= 0) {
+                netWorthChangeElement.classList.add('positive-change');
+                netWorthChangeElement.classList.remove('negative-change');
+            } else {
+                netWorthChangeElement.classList.add('negative-change');
+                netWorthChangeElement.classList.remove('positive-change');
+            }
+        } else {
+            netWorthChangeElement.textContent = 'No previous year data';
+            netWorthChangeElement.classList.remove('positive-change', 'negative-change');
+        }
     }
 }
 
@@ -157,4 +148,4 @@ function updateDebtRatioDisplay(ratio) {
             ratioBarElement.style.backgroundColor = '#f44336'; // Red - danger
         }
     }
-} 
+}

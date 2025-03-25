@@ -5,7 +5,7 @@
 import { getCurrentData, saveData, generateId } from './dataService.js';
 import { renderFinancialTables } from './financialTablesUI.js';
 import { updateDashboardSummary } from './dashboardUI.js';
-import { renderDashboardCharts } from './chartsUI.js';
+// import { renderDashboardCharts } from './chartsUI.js';
 
 /**
  * Initialize form handlers
@@ -183,7 +183,7 @@ function saveAssetForm(yearId) {
     // Update UI
     renderFinancialTables(yearId);
     updateDashboardSummary();
-    renderDashboardCharts();
+    // renderDashboardCharts();
 }
 
 /**
@@ -337,5 +337,5 @@ function saveLiabilityForm(yearId) {
     // Update UI
     renderFinancialTables(yearId);
     updateDashboardSummary();
-    renderDashboardCharts();
+    // renderDashboardCharts();
 } 

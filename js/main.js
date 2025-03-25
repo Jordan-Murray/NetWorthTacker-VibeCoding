@@ -1,100 +1,180 @@
-console.log('MAIN.JS LOADED - BEFORE IMPORTS');
+/**
+ * Main Application Entry Point
+ * Centralized initialization for Net Worth Tracker
+ */
+
+// Debug log to verify script loading
+console.log('main.js is loading');
+
+// Set global flag to indicate the script loaded
+window.mainScriptLoaded = true;
+
+// Import modules
+import { getDataStore } from './modules/enhancedDataService.js';
+import { initNavigation } from './modules/navigationModule.js';
+import { initModal } from './modules/modalModule.js';
+import { initCharts, renderDashboardCharts, renderTrendsCharts } from './modules/chartModule.js';
+import { initFinancialTables } from './modules/financialTablesUI.js';
+import { initMilestones } from './modules/milestonesUI.js';
+import { initSalaryTracker } from './modules/salaryTrackerUI.js';
+import { initYearManager } from './modules/yearManagerUI.js';
+import { initImportExport } from './modules/importExportModule.js';
+
+// Log application startup
+console.log('Net Worth Tracker initializing...');
 
 /**
- * Main Application
- * Entry point for the Net Worth Tracker application
+ * Initialize the application
  */
-import { initYearManager } from './modules/yearManagerUI.js';
-import { updateDashboardSummary } from './modules/dashboardUI.js';
-import { renderDashboardCharts, renderTrendsCharts } from './modules/chartsUI.js';
-import { initMilestonesUI } from './modules/milestonesUI.js';
-import { initSalaryTrackerUI } from './modules/salaryTrackerUI.js';
-import { initSettingsIcon } from './modules/dataManagementUI.js';
-import { initFormHandlers } from './modules/formHandlerUI.js';
-
-console.log('MAIN.JS LOADED - AFTER IMPORTS');
-
-// Main initialization function
 function initializeApp() {
-    console.log('Initializing application...');
+    // Initialize components in the correct order
     
-    // Set up UI tabs
-    initTabs();
+    // 1. Initialize data store first (required by all other modules)
+    const dataStore = getDataStore();
+    window.dataStore = dataStore; // Make available globally for debugging
     
-    // Initialize year management
+    // 2. Initialize navigation (required for section visibility)
+    initNavigation();
+    
+    // 3. Initialize modal handling (required for all forms)
+    initModal();
+    
+    // 4. Initialize UI components that don't depend on each other
     initYearManager();
+    initFinancialTables();
+    initMilestones();
+    initSalaryTracker();
     
-    // Initialize dashboard components
-    updateDashboardSummary();
-    renderDashboardCharts();
+    // 5. Initialize charts after other UI is ready
+    initCharts();
     
-    // Initialize other modules
-    initMilestonesUI();
-    initSalaryTrackerUI();
-    initFormHandlers();
+    // 6. Initialize import/export functionality
+    initImportExport();
     
-    // Initialize data management
-    initSettingsIcon();
+    // 7. Create global references for compatibility with older code
+    window.renderDashboardCharts = renderDashboardCharts;
+    window.renderTrendsCharts = renderTrendsCharts;
     
-    // Initialize event handler for refresh trends button
+    // 8. Set up event listeners for app-wide events
+    setupGlobalEvents();
+    
+    // Log successful initialization
+    console.log('Net Worth Tracker initialized successfully');
+}
+
+/**
+ * Set up global event listeners
+ */
+function setupGlobalEvents() {
+    // When data is updated, refresh all UI
+    document.addEventListener('dataUpdated', () => {
+        console.log('Data updated, refreshing UI...');
+        refreshAllUI();
+    });
+    
+    // When navigation changes, update relevant UI
+    document.addEventListener('navigationChanged', (e) => {
+        console.log(`Navigated to section: ${e.detail.section}`);
+        refreshSectionUI(e.detail.section);
+    });
+    
+    // Refresh trends button
     const refreshTrendsBtn = document.getElementById('refresh-trends-btn');
     if (refreshTrendsBtn) {
         refreshTrendsBtn.addEventListener('click', renderTrendsCharts);
     }
     
-    // Initial rendering of trends charts
+    // Handle settings icon click for import/export
+    const settingsIcon = document.getElementById('settings-icon');
+    if (settingsIcon) {
+        settingsIcon.addEventListener('click', () => {
+            console.log('Settings icon clicked');
+            showImportExportModal();
+        });
+    }
+}
+
+/**
+ * Refresh all UI components
+ */
+function refreshAllUI() {
+    // Update year selector
+    if (typeof window.refreshYearSelector === 'function') {
+        window.refreshYearSelector();
+    }
+    
+    // Update financial tables
+    if (typeof window.refreshFinancialTables === 'function') {
+        window.refreshFinancialTables();
+    }
+    
+    // Update dashboard
+    if (typeof window.refreshDashboard === 'function') {
+        window.refreshDashboard();
+    }
+    
+    // Update charts
+    renderDashboardCharts();
     renderTrendsCharts();
     
-    console.log('Application initialization complete');
-}
-
-// Handle tab switching
-function initTabs() {
-    const tabLinks = document.querySelectorAll('#main-nav a');
+    // Update milestones
+    if (typeof window.refreshMilestones === 'function') {
+        window.refreshMilestones();
+    }
     
-    tabLinks.forEach(tabLink => {
-        tabLink.addEventListener('click', function (event) {
-            event.preventDefault();
-            
-            // Get target section id
-            const targetId = this.getAttribute('href').substring(1);
-            
-            // Hide all sections
-            document.querySelectorAll('main > section').forEach(section => {
-                section.classList.add('hidden-section');
-                section.classList.remove('active-section');
-            });
-            
-            // Show target section
-            const targetSection = document.getElementById(targetId);
-            if (targetSection) {
-                targetSection.classList.remove('hidden-section');
-                targetSection.classList.add('active-section');
-            }
-            
-            // Update active tab
-            tabLinks.forEach(link => link.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Update charts when switching to tabs with charts
-            if (targetId === 'dashboard') {
-                renderDashboardCharts();
-            } else if (targetId === 'trends') {
-                renderTrendsCharts();
-            }
-        });
-    });
+    // Update salary table
+    if (typeof window.refreshSalaryTable === 'function') {
+        window.refreshSalaryTable();
+    }
 }
 
-// Initialize the application when DOM is fully loaded
-console.log('Setting up DOMContentLoaded event listener');
+/**
+ * Refresh UI for a specific section
+ * @param {string} section - Section ID
+ */
+function refreshSectionUI(section) {
+    switch(section) {
+        case 'dashboard':
+            renderDashboardCharts();
+            if (typeof window.refreshDashboard === 'function') {
+                window.refreshDashboard();
+            }
+            break;
+        case 'assets-liabilities':
+            if (typeof window.refreshFinancialTables === 'function') {
+                window.refreshFinancialTables();
+            }
+            break;
+        case 'trends':
+            renderTrendsCharts();
+            break;
+        case 'goals':
+            if (typeof window.refreshMilestones === 'function') {
+                window.refreshMilestones();
+            }
+            break;
+        case 'salary-tracking':
+            if (typeof window.refreshSalaryTable === 'function') {
+                window.refreshSalaryTable();
+            }
+            break;
+    }
+}
+
+/**
+ * Show import/export modal
+ */
+function showImportExportModal() {
+    if (typeof window.showImportExportModal === 'function') {
+        window.showImportExportModal();
+    }
+}
+
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApp);
 
-// Handle year selection changes globally
-document.addEventListener('yearChanged', function(e) {
-    if (e.detail && e.detail.year) {
-        // Update UI based on selected year
-        updateDashboardSummary();
-        renderDashboardCharts();
-    }
-}); 
+// Handle errors
+window.addEventListener('error', (event) => {
+    console.error('Application error:', event.error);
+    // Could add error reporting or a user-friendly error message here
+});

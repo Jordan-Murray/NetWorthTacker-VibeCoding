@@ -5,7 +5,7 @@
 import { getCurrentData, saveData } from './dataService.js';
 import { renderFinancialTables } from './financialTablesUI.js';
 import { updateDashboardSummary } from './dashboardUI.js';
-import { renderDashboardCharts } from './chartsUI.js';
+// import { renderDashboardCharts } from './chartsUI.js';
 
 /**
  * Initialize year manager UI
@@ -88,7 +88,7 @@ function setupYearActions() {
         // Update UI components based on selected year
         renderFinancialTables(selectedYear);
         updateDashboardSummary();
-        renderDashboardCharts();
+        // renderDashboardCharts();
         
         // Update delete button visibility (don't allow deleting the last year)
         if (deleteYearBtn) {

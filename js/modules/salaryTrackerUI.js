@@ -4,7 +4,7 @@
  */
 import { getCurrentData, saveData, generateId } from './dataService.js';
 import { formatCurrency, calculatePercentChange } from './utils.js';
-import { renderSalaryChart } from './chartsUI.js';
+// import { renderSalaryChart } from './chartsUI.js';
 
 /**
  * Initialize salary tracker UI
@@ -99,7 +99,7 @@ function renderSalaryTable() {
     });
     
     // Update chart
-    renderSalaryChart();
+    // renderSalaryChart();
 }
 
 /**
