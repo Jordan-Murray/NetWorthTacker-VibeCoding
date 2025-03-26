@@ -179,4 +179,106 @@ function showEditSalaryModal(entry) {
             }
         });
     }
+}
+
+/**
+ * Update the salary chart
+ * @param {Array} salaryHistory - Array of salary entries
+ */
+function updateSalaryChart(salaryHistory) {
+    const chartContainer = document.getElementById('salary-chart');
+    if (!chartContainer) return;
+    
+    // Clear existing chart
+    chartContainer.innerHTML = '';
+    
+    // Sort entries by date (oldest to newest)
+    const sortedEntries = [...salaryHistory].sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    // Create chart HTML
+    const chartHTML = `
+        <div class="chart-container">
+            <canvas id="salary-chart-canvas"></canvas>
+        </div>
+    `;
+    
+    chartContainer.innerHTML = chartHTML;
+    
+    // Get canvas context
+    const canvas = document.getElementById('salary-chart-canvas');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Calculate percentage changes
+    const data = sortedEntries.map((entry, index) => {
+        const amount = entry.amount;
+        const date = new Date(entry.date).toLocaleDateString('en-GB', {
+            year: 'numeric',
+            month: 'short'
+        });
+        
+        let increasePercent = 0;
+        if (index > 0) {
+            const prevAmount = sortedEntries[index - 1].amount;
+            increasePercent = ((amount - prevAmount) / prevAmount) * 100;
+        }
+        
+        return {
+            date,
+            amount,
+            increasePercent
+        };
+    });
+    
+    // Set up chart data
+    const chartData = {
+        labels: data.map(d => d.date),
+        datasets: [{
+            label: 'Salary Amount',
+            data: data.map(d => d.amount),
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            fill: true,
+            tension: 0.4
+        }]
+    };
+    
+    // Chart options
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '£' + value.toLocaleString();
+                    }
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const index = context.dataIndex;
+                        const entry = data[index];
+                        let label = `Salary: £${entry.amount.toLocaleString()}`;
+                        if (entry.increasePercent !== 0) {
+                            label += ` (${entry.increasePercent > 0 ? '+' : ''}${entry.increasePercent.toFixed(1)}%)`;
+                        }
+                        return label;
+                    }
+                }
+            }
+        }
+    };
+    
+    // Create chart
+    new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: options
+    });
 } 
