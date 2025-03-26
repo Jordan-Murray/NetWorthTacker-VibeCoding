@@ -1,0 +1,29 @@
+{
+  "name": "networthtracker-vibecoding",
+  "version": "1.0.0",
+  "description": "A simple yet powerful web application to track your net worth over time, built using vanilla HTML, CSS, and JavaScript.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jordan-Murray/NetWorthTacker-VibeCoding.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jordan-Murray/NetWorthTacker-VibeCoding/issues"
+  },
+  "homepage": "https://github.com/Jordan-Murray/NetWorthTacker-VibeCoding#readme",
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "chart.js": "^4.4.8",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}

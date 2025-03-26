@@ -1,74 +1,103 @@
 /**
  * Dashboard UI Module
- * Handles the dashboard UI and summary display
+ * Handles the dashboard UI, summary display, and charts
  */
-import { getDataStore } from './enhancedDataService.js';
-import { formatCurrency, calculatePercentChange } from './utils.js';
+import { getDataService } from './dataService.js';
+import { Chart } from 'chart.js/auto';
 
-/**
- * Initialize the dashboard UI
- */
-export function initDashboard() {
-    // Initial render
-    updateDashboardSummary();
-    
-    // Set up event listeners
-    const dataStore = getDataStore();
-    dataStore.addEventListener('dataUpdated', updateDashboardSummary);
-    dataStore.addEventListener('yearChanged', updateDashboardSummary);
-    
-    // Export for global access (backward compatibility)
-    window.refreshDashboard = updateDashboardSummary;
+// Utility functions
+function formatCurrency(value) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    }).format(value);
 }
 
-/**
- * Update the dashboard summary with the latest data
- */
-export function updateDashboardSummary() {
-    const dataStore = getDataStore();
-    const years = dataStore.getYears();
+function calculatePercentChange(oldValue, newValue) {
+    if (oldValue === 0) return 0;
+    return ((newValue - oldValue) / Math.abs(oldValue)) * 100;
+}
+
+// Chart instances
+let netWorthChart = null;
+let assetsLiabilitiesChart = null;
+
+export function initDashboard() {
+    const dataService = getDataService();
+    
+    // Set up event listeners
+    dataService.on('dataChanged', updateDashboard);
+    
+    // Initialize UI components
+    initializeCharts();
+    updateDashboard();
+    
+    // Set up year selector
+    const yearSelect = document.getElementById('year-select');
+    if (yearSelect) {
+        yearSelect.addEventListener('change', updateDashboard);
+        updateYearSelector();
+    }
+}
+
+function updateYearSelector() {
+    const dataService = getDataService();
+    const yearSelect = document.getElementById('year-select');
+    if (!yearSelect) return;
+    
+    const years = dataService.getYears();
+    const currentYear = new Date().getFullYear();
+    
+    // Clear existing options
+    yearSelect.innerHTML = '';
+    
+    // Add options for each year
+    years.forEach(year => {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        if (year === currentYear) {
+            option.selected = true;
+        }
+        yearSelect.appendChild(option);
+    });
+}
+
+function updateDashboard() {
+    const dataService = getDataService();
+    const years = dataService.getYears();
     
     if (years.length === 0) return;
     
-    // Get the current selected year
     const yearSelect = document.getElementById('year-select');
-    const currentYear = yearSelect ? yearSelect.value : years[0];
+    const selectedYear = yearSelect ? parseInt(yearSelect.value) : years[years.length - 1];
     
-    if (!currentYear) return;
+    updateSummary(selectedYear);
+    updateCharts(selectedYear);
+}
+
+function updateSummary(year) {
+    const dataService = getDataService();
+    const years = dataService.getYears();
+    const yearIndex = years.indexOf(year);
+    const previousYear = yearIndex > 0 ? years[yearIndex - 1] : null;
     
-    // Find the index of the current year and previous year (if any)
-    const sortedYears = [...years].sort();
-    const currentYearIndex = sortedYears.indexOf(parseInt(currentYear));
-    const hasPreviousYear = currentYearIndex > 0;
-    const previousYear = hasPreviousYear ? sortedYears[currentYearIndex - 1] : null;
-    
-    // Calculate current net worth, assets, and liabilities
-    const netWorth = dataStore.getNetWorth(currentYear);
-    const totalAssets = dataStore.getTotalAssets(currentYear);
-    const totalLiabilities = dataStore.getTotalLiabilities(currentYear);
+    // Calculate current values
+    const netWorth = dataService.getNetWorth(year);
+    const totalAssets = dataService.getTotalAssets(year);
+    const totalLiabilities = dataService.getTotalLiabilities(year);
+    const debtRatio = dataService.getDebtToAssetRatio(year);
     
     // Calculate previous net worth for comparison
-    let previousNetWorth = 0;
-    if (previousYear) {
-        previousNetWorth = dataStore.getNetWorth(previousYear);
-    }
+    const previousNetWorth = previousYear ? dataService.getNetWorth(previousYear) : 0;
     
-    // Calculate debt-to-asset ratio
-    const debtAssetRatio = dataStore.getDebtToAssetRatio(currentYear);
-    
-    // Update UI
+    // Update UI elements
     updateNetWorthDisplay(netWorth, previousNetWorth, previousYear);
     updateAssetsDisplay(totalAssets);
     updateLiabilitiesDisplay(totalLiabilities);
-    updateDebtRatioDisplay(debtAssetRatio);
+    updateDebtRatioDisplay(debtRatio);
 }
 
-/**
- * Update the net worth display
- * @param {number} netWorth - Current net worth
- * @param {number} previousNetWorth - Previous net worth for comparison
- * @param {number|null} previousYear - Previous year (if any)
- */
 function updateNetWorthDisplay(netWorth, previousNetWorth, previousYear) {
     const netWorthElement = document.getElementById('current-net-worth');
     const netWorthChangeElement = document.getElementById('net-worth-change');
@@ -77,75 +106,150 @@ function updateNetWorthDisplay(netWorth, previousNetWorth, previousYear) {
         netWorthElement.textContent = formatCurrency(netWorth);
     }
     
-    if (netWorthChangeElement) {
-        if (previousNetWorth !== 0 && previousYear !== null) {
-            const percentChange = calculatePercentChange(previousNetWorth, netWorth);
-            
-            netWorthChangeElement.textContent = `${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(1)}% from ${previousYear}`;
-            
-            // Add class for styling
-            if (percentChange >= 0) {
-                netWorthChangeElement.classList.add('positive-change');
-                netWorthChangeElement.classList.remove('negative-change');
-            } else {
-                netWorthChangeElement.classList.add('negative-change');
-                netWorthChangeElement.classList.remove('positive-change');
-            }
-        } else {
-            netWorthChangeElement.textContent = 'No previous year data';
-            netWorthChangeElement.classList.remove('positive-change', 'negative-change');
-        }
+    if (netWorthChangeElement && previousYear) {
+        const percentChange = calculatePercentChange(previousNetWorth, netWorth);
+        netWorthChangeElement.textContent = `${percentChange >= 0 ? '+' : ''}${percentChange.toFixed(1)}% from ${previousYear}`;
+        netWorthChangeElement.className = percentChange >= 0 ? 'positive-change' : 'negative-change';
     }
 }
 
-/**
- * Update the assets display
- * @param {number} totalAssets - Total assets value
- */
 function updateAssetsDisplay(totalAssets) {
-    const assetsElement = document.getElementById('total-assets');
-    
-    if (assetsElement) {
-        assetsElement.textContent = formatCurrency(totalAssets);
+    const element = document.getElementById('total-assets');
+    if (element) {
+        element.textContent = formatCurrency(totalAssets);
     }
 }
 
-/**
- * Update the liabilities display
- * @param {number} totalLiabilities - Total liabilities value
- */
 function updateLiabilitiesDisplay(totalLiabilities) {
-    const liabilitiesElement = document.getElementById('total-liabilities');
-    
-    if (liabilitiesElement) {
-        liabilitiesElement.textContent = formatCurrency(totalLiabilities);
+    const element = document.getElementById('total-liabilities');
+    if (element) {
+        element.textContent = formatCurrency(totalLiabilities);
     }
 }
 
-/**
- * Update the debt-to-asset ratio display
- * @param {number} ratio - Debt-to-asset ratio percentage
- */
 function updateDebtRatioDisplay(ratio) {
-    const ratioElement = document.getElementById('debt-asset-ratio');
-    const ratioBarElement = document.getElementById('debt-ratio-bar');
+    const element = document.getElementById('debt-asset-ratio');
+    const barElement = document.getElementById('debt-ratio-bar');
     
-    if (ratioElement) {
-        ratioElement.textContent = `${ratio.toFixed(1)}%`;
+    if (element) {
+        element.textContent = `${ratio.toFixed(1)}%`;
     }
     
-    if (ratioBarElement) {
-        // Limit width to 100%
-        const barWidth = Math.min(ratio, 100);
-        ratioBarElement.style.width = `${barWidth}%`;
-        
-        // Set color based on ratio
-        if (ratio < 30) {
-            ratioBarElement.style.backgroundColor = '#4caf50'; // Green - healthy
-        } else if (ratio < 60) {
-            ratioBarElement.style.backgroundColor = '#ff9800'; // Orange - warning
-        } else {
-            ratioBarElement.style.backgroundColor = '#f44336'; // Red - danger
+    if (barElement) {
+        const width = Math.min(ratio, 100);
+        barElement.style.width = `${width}%`;
+        barElement.style.backgroundColor = ratio < 30 ? '#4caf50' : ratio < 60 ? '#ff9800' : '#f44336';
+    }
+}
+
+function initializeCharts() {
+    initNetWorthChart();
+    initAssetsLiabilitiesChart();
+}
+
+function initNetWorthChart() {
+    const ctx = document.getElementById('net-worth-chart');
+    if (!ctx) return;
+    
+    netWorthChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Net Worth',
+                data: [],
+                borderColor: '#2196f3',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Net Worth Over Time'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value => formatCurrency(value)
+                    }
+                }
+            }
         }
+    });
+}
+
+function initAssetsLiabilitiesChart() {
+    const ctx = document.getElementById('assets-liabilities-chart');
+    if (!ctx) return;
+    
+    assetsLiabilitiesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Assets',
+                    data: [],
+                    backgroundColor: '#4caf50'
+                },
+                {
+                    label: 'Liabilities',
+                    data: [],
+                    backgroundColor: '#f44336'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Assets & Liabilities Breakdown'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value => formatCurrency(value)
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateCharts(selectedYear) {
+    const dataService = getDataService();
+    const years = dataService.getYears();
+    
+    // Update Net Worth Chart
+    if (netWorthChart) {
+        netWorthChart.data.labels = years;
+        netWorthChart.data.datasets[0].data = years.map(year => dataService.getNetWorth(year));
+        netWorthChart.update();
+    }
+    
+    // Update Assets & Liabilities Chart
+    if (assetsLiabilitiesChart) {
+        const assets = dataService.getAssets(selectedYear);
+        const liabilities = dataService.getLiabilities(selectedYear);
+        
+        const assetCategories = [...new Set(assets.map(a => a.category))];
+        const liabilityCategories = [...new Set(liabilities.map(l => l.category))];
+        const allCategories = [...new Set([...assetCategories, ...liabilityCategories])];
+        
+        assetsLiabilitiesChart.data.labels = allCategories;
+        assetsLiabilitiesChart.data.datasets[0].data = allCategories.map(category => 
+            assets.filter(a => a.category === category).reduce((sum, a) => sum + a.value, 0)
+        );
+        assetsLiabilitiesChart.data.datasets[1].data = allCategories.map(category =>
+            liabilities.filter(l => l.category === category).reduce((sum, l) => sum + l.value, 0)
+        );
+        assetsLiabilitiesChart.update();
     }
 }

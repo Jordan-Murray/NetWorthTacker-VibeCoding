@@ -35,10 +35,6 @@
                 <li><a href="#dashboard" class="active">Dashboard</a></li>
                 <li><a href="#assets-liabilities">Assets & Liabilities</a></li>
                 <li><a href="#trends">Trends & Analysis</a></li>
-                <li><a href="#goals">Milestones & Goals</a></li>
-                <li><a href="#salary-tracking">Salary Tracking</a></li>
-                <li><a href="#savings-tracking">Savings History</a></li>
-                <li><a href="#budgeting">Budgeting & Outgoings</a></li>
             </ul>
         </nav>
         <div id="settings-icon" class="settings-btn" title="Data Import/Export">
@@ -52,103 +48,67 @@
     <main>
         <!-- Dashboard Section -->
         <section id="dashboard" class="active-section">
-            <h2>Financial Dashboard</h2>
-            <div class="summary-cards">
-                <div class="card">
-                    <h3>Current Net Worth</h3>
-                    <p class="value" id="current-net-worth">£0.00</p>
-                    <p class="change" id="net-worth-change">+0% from last year</p>
-                </div>
-                <div class="card">
-                    <h3>Assets</h3>
-                    <p class="value" id="total-assets">£0.00</p>
-                </div>
-                <div class="card">
-                    <h3>Liabilities</h3>
-                    <p class="value" id="total-liabilities">£0.00</p>
-                </div>
-                <div class="card">
-                    <h3>Debt-to-Asset Ratio</h3>
-                    <p class="value" id="debt-asset-ratio">0%</p>
-                    <div class="progress-bar">
-                        <div class="progress" id="debt-ratio-bar" style="width: 0%;"></div>
+            <h2>Dashboard</h2>
+            <div class="dashboard-container">
+                <div class="summary-cards">
+                    <div class="card">
+                        <h3>Total Assets</h3>
+                        <p id="total-assets">£0.00</p>
+                    </div>
+                    <div class="card">
+                        <h3>Total Liabilities</h3>
+                        <p id="total-liabilities">£0.00</p>
+                    </div>
+                    <div class="card">
+                        <h3>Net Worth</h3>
+                        <p id="net-worth">£0.00</p>
                     </div>
                 </div>
-            </div>
-            
-            <div class="charts-container">
                 <div class="chart-wrapper">
-                    <h3>Net Worth History</h3>
                     <canvas id="net-worth-chart"></canvas>
-                </div>
-                <div class="chart-wrapper">
-                    <h3>Asset Diversification</h3>
-                    <canvas id="asset-diversity-chart"></canvas>
                 </div>
             </div>
         </section>
 
-        <!-- Assets & Liabilities Section -->
-        <section id="assets-liabilities" class="hidden-section">
-            <h2>Assets & Liabilities</h2>
-            
-            <div class="section-controls">
-                <div class="year-selector">
-                    <label for="year-select">Year:</label>
-                    <select id="year-select">
-                        <!-- Will be populated by JavaScript -->
-                    </select>
-                    <button id="add-year-btn">+ Add Year</button>
-                    <button id="delete-year-btn">Delete Year</button>
-                </div>
-            </div>
-
-            <div class="financial-tables">
-                <div class="assets-container">
-                    <h3>Assets <button id="add-asset" class="add-btn">+ Add Asset</button></h3>
+        <!-- Assets Section -->
+        <section id="assets" class="hidden-section">
+            <h2>Assets</h2>
+            <div class="assets-container">
+                <div class="assets-list">
+                    <h3>Your Assets <button id="add-asset" class="add-btn">+ Add Asset</button></h3>
                     <table id="assets-table">
                         <thead>
                             <tr>
                                 <th>Category</th>
-                                <th>Item</th>
                                 <th>Value</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="assets-table-body">
                             <!-- Will be populated by JavaScript -->
                         </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="2">Total Assets</td>
-                                <td id="assets-total">£0.00</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
+            </div>
+        </section>
 
-                <div class="liabilities-container">
-                    <h3>Liabilities <button id="add-liability" class="add-btn">+ Add Liability</button></h3>
+        <!-- Liabilities Section -->
+        <section id="liabilities" class="hidden-section">
+            <h2>Liabilities</h2>
+            <div class="liabilities-container">
+                <div class="liabilities-list">
+                    <h3>Your Liabilities <button id="add-liability" class="add-btn">+ Add Liability</button></h3>
                     <table id="liabilities-table">
                         <thead>
                             <tr>
                                 <th>Category</th>
-                                <th>Item</th>
                                 <th>Value</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="liabilities-table-body">
                             <!-- Will be populated by JavaScript -->
                         </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="2">Total Liabilities</td>
-                                <td id="liabilities-total">£0.00</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -157,273 +117,22 @@
         <!-- Trends & Analysis Section -->
         <section id="trends" class="hidden-section">
             <h2>Trends & Analysis</h2>
-            
             <div class="charts-container">
                 <div class="chart-wrapper full-width">
                     <h3>Net Worth Growth</h3>
                     <canvas id="net-worth-growth-chart"></canvas>
                 </div>
-                
                 <div class="chart-wrapper">
                     <h3>Asset Categories Over Time</h3>
                     <canvas id="asset-categories-time-chart"></canvas>
                 </div>
-                
                 <div class="chart-wrapper">
                     <h3>Your Growth vs Benchmarks</h3>
                     <canvas id="growth-vs-benchmarks-chart"></canvas>
                 </div>
             </div>
-            
             <div style="text-align: center; margin-top: 20px;">
                 <button id="refresh-trends-btn" style="padding: 8px 15px; background-color: #3a7bd5; color: white; border: none; border-radius: 4px; cursor: pointer;">Refresh Charts</button>
-            </div>
-        </section>
-
-        <!-- Milestones & Goals Section -->
-        <section id="goals" class="hidden-section">
-            <h2>Milestones & Goals</h2>
-            
-            <div class="goals-container">
-                <div class="milestone-tracker">
-                    <h3>Net Worth Milestones <button id="add-milestone" class="add-btn">+ Add Milestone</button></h3>
-                    <div id="milestones-container">
-                        <!-- Will be populated by JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Salary Tracking Section -->
-        <section id="salary-tracking" class="hidden-section">
-            <h2>Salary History</h2>
-            
-            <div class="salary-container">
-                <div class="salary-history">
-                    <h3>Salary Progression <button id="add-salary" class="add-btn">+ Add Salary</button></h3>
-                    <table id="salary-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Company</th>
-                                <th>Title</th>
-                                <th>Salary</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="salary-table-body">
-                            <!-- Will be populated by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="chart-wrapper">
-                    <h3>Salary Growth</h3>
-                    <canvas id="salary-growth-chart"></canvas>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Savings History Section -->
-        <section id="savings-tracking" class="hidden-section">
-            <h2>Savings History</h2>
-            
-            <div class="savings-container">
-                <div class="savings-history">
-                    <h3>Monthly Savings <button id="add-saving" class="add-btn">+ Add Saving</button></h3>
-                    <table id="savings-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Amount</th>
-                                <th>Category</th>
-                                <th>Notes</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Will be populated by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="savings-summary">
-                    <div class="savings-card">
-                        <h3>Savings Summary</h3>
-                        <div class="savings-stats">
-                            <div class="stat">
-                                <span class="label">Monthly Average:</span>
-                                <span class="value" id="monthly-savings-avg">£0.00</span>
-                            </div>
-                            <div class="stat">
-                                <span class="label">Current Savings Rate:</span>
-                                <span class="value" id="savings-rate">0%</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="pension-calculator">
-                        <h3>Pension Calculator</h3>
-                        <div class="form-group">
-                            <label for="personal-contribution">Your Contribution (%):</label>
-                            <input type="number" id="personal-contribution" placeholder="5" min="0" max="100" step="0.1" />
-                        </div>
-                        <div class="form-group">
-                            <label for="employer-contribution">Employer Contribution (%):</label>
-                            <input type="number" id="employer-contribution" placeholder="3" min="0" max="100" step="0.1" />
-                        </div>
-                        <div class="form-group">
-                            <label for="emergency-fund-goal">Emergency Fund Goal (months):</label>
-                            <input type="number" id="emergency-fund-goal" placeholder="3" min="1" max="12" step="1" />
-                        </div>
-                        <button id="calculate-savings" class="save-btn">Calculate</button>
-                    </div>
-                </div>
-                
-                <div class="charts-container">
-                    <div class="chart-wrapper">
-                        <h3>Savings Distribution</h3>
-                        <canvas id="savings-distribution-chart"></canvas>
-                    </div>
-                    <div class="chart-wrapper">
-                        <h3>Savings Timeline</h3>
-                        <canvas id="savings-timeline-chart"></canvas>
-                    </div>
-                </div>
-                
-                <div class="financial-order">
-                    <h3>Financial Order of Operations</h3>
-                    <div class="progress-steps" id="financial-steps">
-                        <!-- Will be populated by JavaScript -->
-                        <div class="step active">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <h4>Budget & Emergency Fund</h4>
-                                <p>Establish a budget and build your emergency fund of 3-6 months expenses</p>
-                                <div class="progress-bar">
-                                    <div class="progress" id="emergency-fund-progress" style="width: 0%;"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <h4>Employer Match</h4>
-                                <p>Contribute enough to get full employer pension match</p>
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">3</div>
-                            <div class="step-content">
-                                <h4>High Interest Debt</h4>
-                                <p>Pay off high-interest debt (credit cards, etc.)</p>
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">4</div>
-                            <div class="step-content">
-                                <h4>Full ISA</h4>
-                                <p>Max out Stocks and Shares ISA (£20,000/year)</p>
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">5</div>
-                            <div class="step-content">
-                                <h4>Other Goals</h4>
-                                <p>Save for other large purchases or investments</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Budgeting & Outgoings Section -->
-        <section id="budgeting" class="hidden-section">
-            <h2>Budgeting & Outgoings</h2>
-            
-            <div class="budget-container">
-                <div class="income-inputs">
-                    <h3>Monthly Take-Home Pay</h3>
-                    <div class="form-group">
-                        <label for="your-income">Your Income:</label>
-                        <input type="number" id="your-income" placeholder="£0.00" step="0.01" min="0" />
-                    </div>
-                    <div class="form-group">
-                        <label for="spouse-income">Spouse/Partner Income:</label>
-                        <input type="number" id="spouse-income" placeholder="£0.00" step="0.01" min="0" />
-                    </div>
-                    <div class="form-actions">
-                        <button id="calculate-budget" class="save-btn">Calculate</button>
-                    </div>
-                </div>
-                
-                <div class="results-container" id="budget-results" style="display: none;">
-                    <h3>Contribution Results</h3>
-                    <div class="summary-cards">
-                        <div class="card">
-                            <h3>Total Household Income</h3>
-                            <p class="value" id="total-income">£0.00</p>
-                        </div>
-                        <div class="card">
-                            <h3>Your Contribution</h3>
-                            <p class="value" id="your-contribution">£0.00</p>
-                            <p class="percentage" id="your-percentage">0%</p>
-                        </div>
-                        <div class="card">
-                            <h3>Partner's Contribution</h3>
-                            <p class="value" id="spouse-contribution">£0.00</p>
-                            <p class="percentage" id="spouse-percentage">0%</p>
-                        </div>
-                    </div>
-                    
-                    <div class="joint-account-settings">
-                        <h3>Joint Account Calculations</h3>
-                        <div class="form-group">
-                            <label for="joint-expenses">Monthly Joint Expenses:</label>
-                            <input type="number" id="joint-expenses" placeholder="£0.00" step="0.01" min="0" />
-                        </div>
-                        <div class="form-group">
-                            <label for="contribution-type">Contribution Method:</label>
-                            <select id="contribution-type">
-                                <option value="equal">Equal Amounts</option>
-                                <option value="proportional" selected>Proportional to Income</option>
-                                <option value="custom">Custom Split</option>
-                            </select>
-                        </div>
-                        <div id="custom-split-container" style="display: none;">
-                            <div class="form-group">
-                                <label for="your-split">Your Percentage:</label>
-                                <input type="number" id="your-split" min="0" max="100" value="50" />
-                            </div>
-                        </div>
-                        <div class="form-actions">
-                            <button id="calculate-joint" class="save-btn">Calculate Joint Account</button>
-                        </div>
-                    </div>
-                    
-                    <div id="joint-results" style="display: none;">
-                        <h3>Joint Account Contributions</h3>
-                        <div class="summary-cards">
-                            <div class="card">
-                                <h3>Total Joint Expenses</h3>
-                                <p class="value" id="total-expenses">£0.00</p>
-                            </div>
-                            <div class="card">
-                                <h3>Your Monthly Transfer</h3>
-                                <p class="value" id="your-transfer">£0.00</p>
-                            </div>
-                            <div class="card">
-                                <h3>Partner's Monthly Transfer</h3>
-                                <p class="value" id="spouse-transfer">£0.00</p>
-                            </div>
-                        </div>
-                        
-                        <div class="chart-wrapper">
-                            <h3>Joint Expenses Split</h3>
-                            <canvas id="joint-expenses-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
     </main>
@@ -440,20 +149,5 @@
     
     <!-- Main Application Script - Module Version -->
     <script src="js/main.js" type="module"></script>
-    
-    <!-- Fallback Script (non-module) - Loads if module version fails
-    <script>
-        // Wait for a short time to see if the module version initializes
-        setTimeout(function() {
-            // Check if main.js loaded properly
-            if (!window.mainScriptLoaded) {
-                console.log('Module version failed to load, using fallback script');
-                // Load the fallback script
-                const fallbackScript = document.createElement('script');
-                fallbackScript.src = 'js/fallback.js';
-                document.body.appendChild(fallbackScript);
-            }
-        }, 1000); // Wait 1 second for module version
-    </script> -->
 </body>
 </html>
