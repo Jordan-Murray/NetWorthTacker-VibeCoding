@@ -181,22 +181,101 @@ describe('UI Functionality', () => {
     });
 
     describe('Dashboard Display', () => {
+        let mockStorage;
+
+        beforeEach(() => {
+            // Mock DOM elements
+            document.body.innerHTML = `
+                <div id="dashboard">
+                    <div id="total-assets">£0.00</div>
+                    <div id="total-liabilities">£0.00</div>
+                    <div id="net-worth">£0.00</div>
+                    <div id="net-worth-change"></div>
+                    <select id="year-select"></select>
+                    <canvas id="net-worth-chart"></canvas>
+                    <canvas id="assets-liabilities-chart"></canvas>
+                </div>
+            `;
+
+            // Mock Chart constructor
+            global.Chart = jest.fn(() => ({
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            data: [],
+                            label: 'Assets',
+                            backgroundColor: '#4caf50'
+                        },
+                        {
+                            data: [],
+                            label: 'Liabilities',
+                            backgroundColor: '#f44336'
+                        }
+                    ]
+                },
+                update: jest.fn(),
+                destroy: jest.fn()
+            }));
+
+            // Initialize services
+            mockStorage = {
+                getItem: jest.fn(),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+            dataService = new DataService(mockStorage);
+            dashboardUI = new DashboardUI(dataService);
+
+            // Initialize UI
+            dashboardUI.init();
+        });
+
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+
         test('should update dashboard with correct totals', () => {
             const currentYear = new Date().getFullYear();
             
-            // Add some test data
-            dataService.addAsset(currentYear, 'Cash', 1000);
-            dataService.addAsset(currentYear, 'Investments', 5000);
-            dataService.addLiability(currentYear, 'Credit Card', 2000);
-
-            // Initialize and update dashboard
-            dashboardUI.init();
+            // Add test data
+            dataService.addAsset(currentYear, 'Test Asset 1', 4000);
+            dataService.addAsset(currentYear, 'Test Asset 2', 2000);
+            dataService.addLiability(currentYear, 'Test Liability', 2000);
+            
+            // Trigger dashboard update
             dashboardUI.updateDashboard();
-
-            // Check if values are displayed correctly
+            
             expect(document.getElementById('total-assets').textContent).toBe('£6,000.00');
             expect(document.getElementById('total-liabilities').textContent).toBe('£2,000.00');
-            expect(document.getElementById('current-net-worth').textContent).toBe('£4,000.00');
+            expect(document.getElementById('net-worth').textContent).toBe('£4,000.00');
+        });
+
+        test('should correctly calculate and display net worth', () => {
+            const currentYear = new Date().getFullYear();
+            
+            // Add some assets and liabilities
+            dataService.addAsset(currentYear, 'House', 250000);
+            dataService.addAsset(currentYear, 'Savings', 39890);
+            dataService.addLiability(currentYear, 'Mortgage', 200000);
+            dataService.addLiability(currentYear, 'Car Loan', 3564.50);
+            
+            // Trigger dashboard update
+            dashboardUI.updateDashboard();
+            
+            // Verify the displayed values
+            const totalAssetsElement = document.getElementById('total-assets');
+            const totalLiabilitiesElement = document.getElementById('total-liabilities');
+            const netWorthElement = document.getElementById('net-worth');
+            
+            expect(totalAssetsElement.textContent).toBe('£289,890.00');
+            expect(totalLiabilitiesElement.textContent).toBe('£203,564.50');
+            expect(netWorthElement.textContent).toBe('£86,325.50');
+            
+            // Verify the actual calculations
+            expect(dataService.getTotalAssets(currentYear)).toBe(289890);
+            expect(dataService.getTotalLiabilities(currentYear)).toBe(203564.50);
+            expect(dataService.getNetWorth(currentYear)).toBe(86325.50);
         });
 
         test('should handle year selection', () => {

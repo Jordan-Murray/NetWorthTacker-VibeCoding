@@ -97,7 +97,7 @@ export class DashboardUI {
     }
 
     updateNetWorthDisplay(netWorth, previousNetWorth, previousYear) {
-        const netWorthElement = document.getElementById('current-net-worth');
+        const netWorthElement = document.getElementById('net-worth');
         const netWorthChangeElement = document.getElementById('net-worth-change');
         
         if (netWorthElement) {
