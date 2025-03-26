@@ -1,8 +1,20 @@
 // Mock Chart.js
-jest.mock('chart.js', () => ({
-    Chart: jest.fn(),
-    registerables: []
-}));
+const Chart = jest.fn().mockImplementation((ctx, config) => {
+    const chartInstance = {
+        data: {
+            labels: [],
+            datasets: config.data.datasets.map(dataset => ({
+                ...dataset,
+                data: []
+            }))
+        },
+        update: jest.fn(),
+        destroy: jest.fn()
+    };
+    return chartInstance;
+});
+
+global.Chart = Chart;
 
 // Mock localStorage
 const localStorageMock = {

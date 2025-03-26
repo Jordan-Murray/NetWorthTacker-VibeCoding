@@ -1,7 +1,7 @@
 import { DataService } from '../js/modules/dataService.js';
 
 describe('DataService', () => {
-    let dataStore;
+    let dataService;
     let mockStorage;
 
     beforeEach(() => {
@@ -14,14 +14,14 @@ describe('DataService', () => {
         };
 
         // Create a new DataService instance with mock storage
-        dataStore = new DataService(mockStorage);
+        dataService = new DataService(mockStorage);
     });
 
     test('should initialize with current year', () => {
         const currentYear = new Date().getFullYear();
-        expect(dataStore.data.years[currentYear]).toBeDefined();
-        expect(dataStore.data.years[currentYear].assets).toEqual([]);
-        expect(dataStore.data.years[currentYear].liabilities).toEqual([]);
+        expect(dataService.data.years[currentYear]).toBeDefined();
+        expect(dataService.data.years[currentYear].assets).toEqual([]);
+        expect(dataService.data.years[currentYear].liabilities).toEqual([]);
     });
 
     test('should load data from storage on initialization', () => {
@@ -35,37 +35,37 @@ describe('DataService', () => {
         };
         mockStorage.getItem.mockReturnValue(JSON.stringify(mockData));
 
-        dataStore = new DataService(mockStorage);
-        expect(dataStore.data).toEqual(mockData);
+        dataService = new DataService(mockStorage);
+        expect(dataService.data).toEqual(mockData);
     });
 
     test('should save data to storage', () => {
-        dataStore.addYear(2024);
+        dataService.addYear(2024);
         expect(mockStorage.setItem).toHaveBeenCalledWith(
             'netWorthData',
-            JSON.stringify(dataStore.data)
+            JSON.stringify(dataService.data)
         );
     });
 
     test('should add a new year', () => {
-        const result = dataStore.addYear(2024);
+        const result = dataService.addYear(2024);
         expect(result).toBe(true);
-        expect(dataStore.data.years['2024']).toBeDefined();
-        expect(dataStore.data.years['2024'].assets).toEqual([]);
-        expect(dataStore.data.years['2024'].liabilities).toEqual([]);
+        expect(dataService.data.years['2024']).toBeDefined();
+        expect(dataService.data.years['2024'].assets).toEqual([]);
+        expect(dataService.data.years['2024'].liabilities).toEqual([]);
     });
 
     test('should not add duplicate year', () => {
-        dataStore.addYear(2024);
-        const result = dataStore.addYear(2024);
+        dataService.addYear(2024);
+        const result = dataService.addYear(2024);
         expect(result).toBe(false);
     });
 
     test('should add an asset', () => {
-        dataStore.addYear(2024);
-        dataStore.addAsset(2024, 'Cash', 1000);
+        dataService.addYear(2024);
+        dataService.addAsset(2024, 'Cash', 1000);
         
-        const assets = dataStore.getAssets(2024);
+        const assets = dataService.getAssets(2024);
         expect(assets).toHaveLength(1);
         expect(assets[0].category).toBe('Cash');
         expect(assets[0].value).toBe(1000);
@@ -74,10 +74,10 @@ describe('DataService', () => {
     });
 
     test('should add a liability', () => {
-        dataStore.addYear(2024);
-        dataStore.addLiability(2024, 'Mortgage', 200000);
+        dataService.addYear(2024);
+        dataService.addLiability(2024, 'Mortgage', 200000);
         
-        const liabilities = dataStore.getLiabilities(2024);
+        const liabilities = dataService.getLiabilities(2024);
         expect(liabilities).toHaveLength(1);
         expect(liabilities[0].category).toBe('Mortgage');
         expect(liabilities[0].value).toBe(200000);
@@ -86,43 +86,43 @@ describe('DataService', () => {
     });
 
     test('should calculate net worth correctly', () => {
-        dataStore.addYear(2024);
-        dataStore.addAsset(2024, 'Cash', 1000);
-        dataStore.addAsset(2024, 'Investments', 5000);
-        dataStore.addLiability(2024, 'Mortgage', 200000);
-        dataStore.addLiability(2024, 'Car Loan', 15000);
+        dataService.addYear(2024);
+        dataService.addAsset(2024, 'Cash', 1000);
+        dataService.addAsset(2024, 'Investments', 5000);
+        dataService.addLiability(2024, 'Mortgage', 200000);
+        dataService.addLiability(2024, 'Car Loan', 15000);
 
-        const netWorth = dataStore.getNetWorth(2024);
+        const netWorth = dataService.getNetWorth(2024);
         expect(netWorth).toBe(-209000); // 6000 - 215000
     });
 
     test('should remove an asset', () => {
-        dataStore.addYear(2024);
-        dataStore.addAsset(2024, 'Cash', 1000);
-        const assets = dataStore.getAssets(2024);
+        dataService.addYear(2024);
+        dataService.addAsset(2024, 'Cash', 1000);
+        const assets = dataService.getAssets(2024);
         const assetId = assets[0].id;
 
-        const result = dataStore.removeAsset(2024, assetId);
+        const result = dataService.removeAsset(2024, assetId);
         expect(result).toBe(true);
-        expect(dataStore.getAssets(2024)).toHaveLength(0);
+        expect(dataService.getAssets(2024)).toHaveLength(0);
     });
 
     test('should remove a liability', () => {
-        dataStore.addYear(2024);
-        dataStore.addLiability(2024, 'Mortgage', 200000);
-        const liabilities = dataStore.getLiabilities(2024);
+        dataService.addYear(2024);
+        dataService.addLiability(2024, 'Mortgage', 200000);
+        const liabilities = dataService.getLiabilities(2024);
         const liabilityId = liabilities[0].id;
 
-        const result = dataStore.removeLiability(2024, liabilityId);
+        const result = dataService.removeLiability(2024, liabilityId);
         expect(result).toBe(true);
-        expect(dataStore.getLiabilities(2024)).toHaveLength(0);
+        expect(dataService.getLiabilities(2024)).toHaveLength(0);
     });
 
     test('should handle event listeners', () => {
         const mockCallback = jest.fn();
-        dataStore.on('dataChanged', mockCallback);
+        dataService.on('dataChanged', mockCallback);
         
-        dataStore.addYear(2024);
+        dataService.addYear(2024);
         expect(mockCallback).toHaveBeenCalled();
     });
 }); 

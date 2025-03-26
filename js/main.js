@@ -9,17 +9,10 @@ console.log('main.js is loading');
 // Set global flag to indicate the script loaded
 window.mainScriptLoaded = true;
 
-// Import modules
-import { getDataStore } from './modules/enhancedDataService.js';
-import { initNavigation } from './modules/navigationModule.js';
-import { initModal } from './modules/modalModule.js';
-import { initCharts, renderDashboardCharts, renderTrendsCharts } from './modules/chartModule.js';
-import { initFinancialTables } from './modules/financialTablesUI.js';
-import { initMilestonesUI } from './modules/milestonesUI.js';
-import { initSalaryTrackerUI } from './modules/salaryTrackerUI.js';
-import { initYearManager } from './modules/yearManagerUI.js';
-import { initImportExport } from './modules/importExportModule.js';
-import { initDashboard } from './modules/dashboardUI.js';
+// Import core modules
+import { getDataService } from './modules/dataService.js';
+import { FormHandler } from './modules/formHandler.js';
+import { DashboardUI } from './modules/dashboardUI.js';
 
 // Log application startup
 console.log('Net Worth Tracker initializing...');
@@ -28,44 +21,35 @@ console.log('Net Worth Tracker initializing...');
  * Initialize the application
  */
 function initializeApp() {
-    // Initialize components in the correct order
-    
-    // 1. Initialize data store first (required by all other modules)
-    const dataStore = getDataStore();
-    window.dataStore = dataStore; // Make available globally for debugging
-    
-    // 2. Initialize navigation (required for section visibility)
-    initNavigation();
-    
-    // 3. Initialize modal handling (required for all forms)
-    initModal();
-    
-    // 4. Initialize UI components that don't depend on each other
-    initYearManager();
-    initFinancialTables();
-    initMilestonesUI();
-    initSalaryTrackerUI();
-    initDashboard(); // Initialize dashboard
-    
-    // 5. Initialize charts after other UI is ready
-    initCharts();
-    
-    // 6. Initialize import/export functionality
-    initImportExport();
-    
-    // 7. Create global references for compatibility with older code
-    window.renderDashboardCharts = renderDashboardCharts;
-    window.renderTrendsCharts = renderTrendsCharts;
-    
-    // 8. Set up event listeners for app-wide events
-    setupGlobalEvents();
-    
-    // 9. Render initial charts
-    renderDashboardCharts();
-    renderTrendsCharts();
-    
-    // Log successful initialization
-    console.log('Net Worth Tracker initialized successfully');
+    try {
+        // 1. Initialize data service first (required by all other modules)
+        const dataService = getDataService();
+        window.dataService = dataService; // Make available globally for debugging
+        
+        // 2. Initialize form handler
+        const formHandler = new FormHandler(dataService);
+        formHandler.init();
+        
+        // 3. Initialize dashboard UI
+        const dashboardUI = new DashboardUI(dataService);
+        dashboardUI.init();
+        
+        // 4. Set up event listeners for app-wide events
+        setupGlobalEvents();
+        
+        // Log successful initialization
+        console.log('Net Worth Tracker initialized successfully');
+    } catch (error) {
+        // Log the error with more detail
+        console.error('Failed to initialize Net Worth Tracker:', error);
+        console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
+        // Show error to user
+        showError('Failed to initialize application. Please refresh the page.');
+    }
 }
 
 /**
@@ -73,8 +57,8 @@ function initializeApp() {
  */
 function setupGlobalEvents() {
     // When data is updated, refresh all UI
-    document.addEventListener('dataUpdated', () => {
-        console.log('Data updated, refreshing UI...');
+    document.addEventListener('dataChanged', () => {
+        console.log('Data changed, refreshing UI...');
         refreshAllUI();
     });
     
@@ -83,104 +67,67 @@ function setupGlobalEvents() {
         console.log(`Navigated to section: ${e.detail.section}`);
         refreshSectionUI(e.detail.section);
     });
-    
-    // Refresh trends button
-    const refreshTrendsBtn = document.getElementById('refresh-trends-btn');
-    if (refreshTrendsBtn) {
-        refreshTrendsBtn.addEventListener('click', renderTrendsCharts);
-    }
-    
-    // Handle settings icon click for import/export
-    const settingsIcon = document.getElementById('settings-icon');
-    if (settingsIcon) {
-        settingsIcon.addEventListener('click', () => {
-            console.log('Settings icon clicked');
-            showImportExportModal();
-        });
-    }
 }
 
 /**
  * Refresh all UI components
  */
 function refreshAllUI() {
-    // Update year selector
-    if (typeof window.refreshYearSelector === 'function') {
-        window.refreshYearSelector();
-    }
-    
-    // Update financial tables
-    if (typeof window.refreshFinancialTables === 'function') {
-        window.refreshFinancialTables();
-    }
-    
-    // Update dashboard
-    if (typeof window.refreshDashboard === 'function') {
-        window.refreshDashboard();
-    }
-    
-    // Update charts
-    renderDashboardCharts();
-    renderTrendsCharts();
-    
-    // Update milestones
-    if (typeof window.refreshMilestones === 'function') {
-        window.refreshMilestones();
-    }
-    
-    // Update salary table
-    if (typeof window.refreshSalaryTable === 'function') {
-        window.refreshSalaryTable();
+    try {
+        // Refresh dashboard
+        const dashboard = document.getElementById('dashboard');
+        if (dashboard) {
+            dashboard.dispatchEvent(new Event('refresh'));
+        }
+        
+        // Refresh assets table
+        const assetsTable = document.getElementById('assets-table-body');
+        if (assetsTable) {
+            assetsTable.dispatchEvent(new Event('refresh'));
+        }
+        
+        // Refresh liabilities table
+        const liabilitiesTable = document.getElementById('liabilities-table-body');
+        if (liabilitiesTable) {
+            liabilitiesTable.dispatchEvent(new Event('refresh'));
+        }
+    } catch (error) {
+        console.error('Error refreshing UI:', error);
     }
 }
 
 /**
- * Refresh UI for a specific section
- * @param {string} section - Section ID
+ * Refresh specific section UI
  */
 function refreshSectionUI(section) {
-    switch(section) {
-        case 'dashboard':
-            renderDashboardCharts();
-            if (typeof window.refreshDashboard === 'function') {
-                window.refreshDashboard();
-            }
-            break;
-        case 'assets-liabilities':
-            if (typeof window.refreshFinancialTables === 'function') {
-                window.refreshFinancialTables();
-            }
-            break;
-        case 'trends':
-            renderTrendsCharts();
-            break;
-        case 'goals':
-            if (typeof window.refreshMilestones === 'function') {
-                window.refreshMilestones();
-            }
-            break;
-        case 'salary-tracking':
-            if (typeof window.refreshSalaryTable === 'function') {
-                window.refreshSalaryTable();
-            }
-            break;
+    try {
+        const sectionElement = document.getElementById(section);
+        if (sectionElement) {
+            sectionElement.dispatchEvent(new Event('refresh'));
+        }
+    } catch (error) {
+        console.error(`Error refreshing section ${section}:`, error);
     }
 }
 
 /**
- * Show import/export modal
+ * Show error message to user
  */
-function showImportExportModal() {
-    if (typeof window.showImportExportModal === 'function') {
-        window.showImportExportModal();
-    }
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    document.body.appendChild(errorDiv);
+    
+    // Remove error after 5 seconds
+    setTimeout(() => {
+        errorDiv.remove();
+    }, 5000);
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeApp);
-
-// Handle errors
-window.addEventListener('error', (event) => {
-    console.error('Application error:', event.error);
-    // Could add error reporting or a user-friendly error message here
-});
+// Initialize the application when the DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
