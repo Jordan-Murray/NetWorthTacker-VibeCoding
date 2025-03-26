@@ -2,118 +2,65 @@
  * Milestones UI Module
  * Handles milestone tracking and visualization
  */
-import { getCurrentData, saveData, generateId } from './dataService.js';
+import { getDataStore } from './enhancedDataService.js';
 import { formatCurrency } from './utils.js';
 
 /**
  * Initialize milestones UI
  */
 export function initMilestonesUI() {
-    renderMilestones();
-    setupMilestoneForm();
+    const dataStore = getDataStore();
+    const milestones = dataStore.getMilestones();
+    renderMilestonesTable(milestones);
+    updateMilestonesChart(milestones);
 }
 
 /**
- * Render milestones list
+ * Render the milestones table
+ * @param {Array} milestones - Array of milestone objects
  */
-function renderMilestones() {
-    const data = getCurrentData();
-    if (!data.milestones) {
-        data.milestones = [];
-        saveData(data);
-    }
+function renderMilestonesTable(milestones) {
+    const tableBody = document.getElementById('milestones-table-body');
+    if (!tableBody) return;
     
-    // Sort milestones by target amount
-    const sortedMilestones = [...data.milestones].sort((a, b) => parseFloat(a.target) - parseFloat(b.target));
+    tableBody.innerHTML = '';
     
-    const milestonesContainer = document.getElementById('milestones-container');
-    if (!milestonesContainer) return;
-    
-    milestonesContainer.innerHTML = '';
-    
-    if (sortedMilestones.length === 0) {
-        milestonesContainer.innerHTML = '<div class="alert alert-info">No milestones set. Add your first milestone!</div>';
-        return;
-    }
-    
-    // Calculate current net worth for progress
-    let currentNetWorth = 0;
-    const yearSelect = document.getElementById('year-select');
-    const currentYear = yearSelect ? yearSelect.value : null;
-    
-    if (currentYear && data.years && data.years[currentYear]) {
-        const yearData = data.years[currentYear];
-        
-        let assetsTotal = 0;
-        if (yearData.assets) {
-            assetsTotal = yearData.assets.reduce((total, asset) => total + parseFloat(asset.value), 0);
-        }
-        
-        let liabilitiesTotal = 0;
-        if (yearData.liabilities) {
-            liabilitiesTotal = yearData.liabilities.reduce((total, liability) => total + parseFloat(liability.value), 0);
-        }
-        
-        currentNetWorth = assetsTotal - liabilitiesTotal;
-    }
-    
-    // Create milestone cards
-    sortedMilestones.forEach(milestone => {
-        const card = document.createElement('div');
-        card.className = 'card mb-3';
-        
-        // Calculate progress percentage
-        let progressPercentage = 0;
-        if (milestone.target > 0) {
-            progressPercentage = Math.min(100, Math.max(0, (currentNetWorth / parseFloat(milestone.target)) * 100));
-        }
-        
-        // Determine progress class
-        let progressClass = 'bg-info';
-        if (progressPercentage >= 100) {
-            progressClass = 'bg-success';
-        } else if (progressPercentage >= 75) {
-            progressClass = 'bg-info';
-        } else if (progressPercentage >= 50) {
-            progressClass = 'bg-primary';
-        } else if (progressPercentage >= 25) {
-            progressClass = 'bg-warning';
-        } else {
-            progressClass = 'bg-danger';
-        }
-        
-        // Create card content
-        card.innerHTML = `
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h5 class="card-title mb-0">${milestone.name}</h5>
-                    <div>
-                        <button class="btn btn-sm btn-outline-danger delete-milestone" data-id="${milestone.id}">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+    milestones.forEach(milestone => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${milestone.name}</td>
+            <td>${formatCurrency(milestone.amount)}</td>
+            <td>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-primary edit-milestone" data-id="${milestone.id}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger delete-milestone" data-id="${milestone.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
-                <h6 class="card-subtitle mb-2 text-muted">Target: ${formatCurrency(milestone.target)}</h6>
-                <div class="progress" style="height: 25px;">
-                    <div class="progress-bar ${progressClass}" role="progressbar" 
-                         style="width: ${progressPercentage}%;" 
-                         aria-valuenow="${progressPercentage}" aria-valuemin="0" aria-valuemax="100">
-                        ${Math.round(progressPercentage)}%
-                    </div>
-                </div>
-                <div class="mt-2 text-muted">
-                    Current: ${formatCurrency(currentNetWorth)} 
-                    (${currentNetWorth >= parseFloat(milestone.target) ? 'Achieved!' : 
-                       formatCurrency(parseFloat(milestone.target) - currentNetWorth) + ' to go'})
-                </div>
-                ${milestone.notes ? `<p class="card-text mt-2"><small>${milestone.notes}</small></p>` : ''}
-            </div>
+            </td>
         `;
-        
-        milestonesContainer.appendChild(card);
+        tableBody.appendChild(row);
     });
     
-    // Set up delete buttons
+    // Set up action buttons
+    setupMilestoneActionButtons();
+}
+
+/**
+ * Set up milestone action buttons
+ */
+function setupMilestoneActionButtons() {
+    // Edit buttons
+    document.querySelectorAll('.edit-milestone').forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            editMilestone(id);
+        });
+    });
+    
+    // Delete buttons
     document.querySelectorAll('.delete-milestone').forEach(button => {
         button.addEventListener('click', function() {
             const id = this.getAttribute('data-id');
@@ -123,58 +70,15 @@ function renderMilestones() {
 }
 
 /**
- * Set up milestone form
+ * Edit a milestone
+ * @param {string} id - The ID of the milestone to edit
  */
-function setupMilestoneForm() {
-    const form = document.getElementById('add-milestone-form');
-    if (!form) return;
+function editMilestone(id) {
+    const dataStore = getDataStore();
+    const milestone = dataStore.getMilestone(id);
+    if (!milestone) return;
     
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const nameInput = document.getElementById('milestone-name');
-        const targetInput = document.getElementById('milestone-target');
-        const notesInput = document.getElementById('milestone-notes');
-        
-        if (!nameInput || !targetInput) return;
-        
-        const name = nameInput.value.trim();
-        const target = parseFloat(targetInput.value);
-        const notes = notesInput ? notesInput.value.trim() : '';
-        
-        if (!name || isNaN(target) || target <= 0) {
-            alert('Please enter a valid name and target amount.');
-            return;
-        }
-        
-        // Add new milestone
-        const data = getCurrentData();
-        if (!data.milestones) {
-            data.milestones = [];
-        }
-        
-        data.milestones.push({
-            id: generateId(),
-            name,
-            target,
-            notes,
-            dateAdded: new Date().toISOString()
-        });
-        
-        saveData(data);
-        
-        // Reset form
-        form.reset();
-        
-        // Update UI
-        renderMilestones();
-        
-        // Close modal if open
-        const modal = bootstrap.Modal.getInstance(document.getElementById('add-milestone-modal'));
-        if (modal) {
-            modal.hide();
-        }
-    });
+    showEditMilestoneModal(milestone);
 }
 
 /**
@@ -186,14 +90,49 @@ function deleteMilestone(id) {
         return;
     }
     
-    const data = getCurrentData();
-    if (!data.milestones) return;
+    const dataStore = getDataStore();
+    dataStore.removeMilestone(id);
+    initMilestonesUI();
+}
+
+/**
+ * Show edit milestone modal
+ * @param {Object} milestone - The milestone to edit
+ */
+function showEditMilestoneModal(milestone) {
+    const modalContent = `
+        <h2>Edit Milestone</h2>
+        <div class="form-group">
+            <label for="milestone-name">Name:</label>
+            <input type="text" id="milestone-name" value="${milestone.name}" />
+        </div>
+        <div class="form-group">
+            <label for="milestone-target">Target Amount (£):</label>
+            <input type="number" id="milestone-target" value="${milestone.amount}" min="0" step="0.01" />
+        </div>
+        <div class="form-actions">
+            <button id="cancel-milestone" class="cancel-btn">Cancel</button>
+            <button id="save-milestone" class="save-btn">Save Changes</button>
+        </div>
+    `;
     
-    // Find and remove the milestone
-    const index = data.milestones.findIndex(m => m.id === id);
-    if (index !== -1) {
-        data.milestones.splice(index, 1);
-        saveData(data);
-        renderMilestones();
+    showModal(modalContent, 'edit-milestone');
+    
+    // Set up save button
+    const saveBtn = document.getElementById('save-milestone');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            const name = document.getElementById('milestone-name').value;
+            const amount = parseFloat(document.getElementById('milestone-target').value);
+            
+            if (name && !isNaN(amount) && amount >= 0) {
+                const dataStore = getDataStore();
+                dataStore.updateMilestone(milestone.id, { name, amount });
+                initMilestonesUI();
+                hideModal();
+            } else {
+                alert('Please fill all fields with valid values');
+            }
+        });
     }
 } 

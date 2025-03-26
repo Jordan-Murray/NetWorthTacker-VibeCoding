@@ -2,41 +2,123 @@
  * Form Handler UI Module
  * Handles forms for adding/editing assets and liabilities
  */
-import { getCurrentData, saveData, generateId } from './dataService.js';
+import { getDataStore } from './enhancedDataService.js';
 import { renderFinancialTables } from './financialTablesUI.js';
 import { updateDashboardSummary } from './dashboardUI.js';
-// import { renderDashboardCharts } from './chartsUI.js';
 
 /**
- * Initialize form handlers
+ * Initialize form handler UI
  */
-export function initFormHandlers() {
-    setupAssetForm();
-    setupLiabilityForm();
+export function initFormHandlerUI() {
+    const dataStore = getDataStore();
+    const currentYear = dataStore.getCurrentYear();
+    setupAssetForm(currentYear);
+    setupLiabilityForm(currentYear);
+    setupSavingForm(currentYear);
 }
 
 /**
  * Set up asset form
+ * @param {string} currentYear - The current year
  */
-function setupAssetForm() {
-    const addAssetBtn = document.getElementById('add-asset');
-    if (addAssetBtn) {
-        addAssetBtn.addEventListener('click', function() {
-            showAssetForm();
+function setupAssetForm(currentYear) {
+    const form = document.getElementById('add-asset-form');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const category = document.getElementById('asset-category').value;
+        const name = document.getElementById('asset-name').value.trim();
+        const value = parseFloat(document.getElementById('asset-value').value);
+        
+        if (!category || !name || isNaN(value) || value < 0) {
+            alert('Please fill all fields with valid values');
+            return;
+        }
+        
+        const dataStore = getDataStore();
+        dataStore.addAsset(currentYear, {
+            category,
+            name,
+            value,
+            dateAdded: new Date().toISOString()
         });
-    }
+        
+        form.reset();
+        hideModal();
+        initFormHandlerUI();
+    });
 }
 
 /**
  * Set up liability form
+ * @param {string} currentYear - The current year
  */
-function setupLiabilityForm() {
-    const addLiabilityBtn = document.getElementById('add-liability');
-    if (addLiabilityBtn) {
-        addLiabilityBtn.addEventListener('click', function() {
-            showLiabilityForm();
+function setupLiabilityForm(currentYear) {
+    const form = document.getElementById('add-liability-form');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const category = document.getElementById('liability-category').value;
+        const name = document.getElementById('liability-name').value.trim();
+        const value = parseFloat(document.getElementById('liability-value').value);
+        
+        if (!category || !name || isNaN(value) || value < 0) {
+            alert('Please fill all fields with valid values');
+            return;
+        }
+        
+        const dataStore = getDataStore();
+        dataStore.addLiability(currentYear, {
+            category,
+            name,
+            value,
+            dateAdded: new Date().toISOString()
         });
-    }
+        
+        form.reset();
+        hideModal();
+        initFormHandlerUI();
+    });
+}
+
+/**
+ * Set up saving form
+ * @param {string} currentYear - The current year
+ */
+function setupSavingForm(currentYear) {
+    const form = document.getElementById('add-saving-form');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const date = document.getElementById('saving-date').value;
+        const amount = parseFloat(document.getElementById('saving-amount').value);
+        const category = document.getElementById('saving-category').value;
+        const notes = document.getElementById('saving-notes').value.trim();
+        
+        if (!date || isNaN(amount) || amount < 0 || !category) {
+            alert('Please fill all required fields with valid values');
+            return;
+        }
+        
+        const dataStore = getDataStore();
+        dataStore.addSaving(currentYear, {
+            date,
+            amount,
+            category,
+            notes,
+            dateAdded: new Date().toISOString()
+        });
+        
+        form.reset();
+        hideModal();
+        initFormHandlerUI();
+    });
 }
 
 /**
@@ -133,25 +215,25 @@ function saveAssetForm(yearId) {
         return;
     }
     
-    const data = getCurrentData();
+    const dataStore = getDataStore();
     
-    if (!data.years[yearId]) {
-        data.years[yearId] = {
+    if (!dataStore.data.years[yearId]) {
+        dataStore.data.years[yearId] = {
             assets: [],
             liabilities: []
         };
     }
     
-    if (!data.years[yearId].assets) {
-        data.years[yearId].assets = [];
+    if (!dataStore.data.years[yearId].assets) {
+        dataStore.data.years[yearId].assets = [];
     }
     
     if (id) {
         // Edit existing asset
-        const index = data.years[yearId].assets.findIndex(asset => asset.id === id);
+        const index = dataStore.data.years[yearId].assets.findIndex(asset => asset.id === id);
         if (index !== -1) {
-            data.years[yearId].assets[index] = {
-                ...data.years[yearId].assets[index],
+            dataStore.data.years[yearId].assets[index] = {
+                ...dataStore.data.years[yearId].assets[index],
                 name,
                 category,
                 value,
@@ -161,8 +243,8 @@ function saveAssetForm(yearId) {
         }
     } else {
         // Add new asset
-        data.years[yearId].assets.push({
-            id: generateId(),
+        dataStore.data.years[yearId].assets.push({
+            id: dataStore.generateId(),
             name,
             category,
             value,
@@ -171,7 +253,7 @@ function saveAssetForm(yearId) {
         });
     }
     
-    saveData(data);
+    dataStore.saveData();
     
     // Close modal
     const modalContainer = document.getElementById('modal-container');
@@ -183,7 +265,6 @@ function saveAssetForm(yearId) {
     // Update UI
     renderFinancialTables(yearId);
     updateDashboardSummary();
-    // renderDashboardCharts();
 }
 
 /**
@@ -285,25 +366,25 @@ function saveLiabilityForm(yearId) {
         return;
     }
     
-    const data = getCurrentData();
+    const dataStore = getDataStore();
     
-    if (!data.years[yearId]) {
-        data.years[yearId] = {
+    if (!dataStore.data.years[yearId]) {
+        dataStore.data.years[yearId] = {
             assets: [],
             liabilities: []
         };
     }
     
-    if (!data.years[yearId].liabilities) {
-        data.years[yearId].liabilities = [];
+    if (!dataStore.data.years[yearId].liabilities) {
+        dataStore.data.years[yearId].liabilities = [];
     }
     
     if (id) {
         // Edit existing liability
-        const index = data.years[yearId].liabilities.findIndex(liability => liability.id === id);
+        const index = dataStore.data.years[yearId].liabilities.findIndex(liability => liability.id === id);
         if (index !== -1) {
-            data.years[yearId].liabilities[index] = {
-                ...data.years[yearId].liabilities[index],
+            dataStore.data.years[yearId].liabilities[index] = {
+                ...dataStore.data.years[yearId].liabilities[index],
                 name,
                 category,
                 value,
@@ -314,8 +395,8 @@ function saveLiabilityForm(yearId) {
         }
     } else {
         // Add new liability
-        data.years[yearId].liabilities.push({
-            id: generateId(),
+        dataStore.data.years[yearId].liabilities.push({
+            id: dataStore.generateId(),
             name,
             category,
             value,
@@ -325,7 +406,7 @@ function saveLiabilityForm(yearId) {
         });
     }
     
-    saveData(data);
+    dataStore.saveData();
     
     // Close modal
     const modalContainer = document.getElementById('modal-container');
@@ -337,5 +418,4 @@ function saveLiabilityForm(yearId) {
     // Update UI
     renderFinancialTables(yearId);
     updateDashboardSummary();
-    // renderDashboardCharts();
 } 

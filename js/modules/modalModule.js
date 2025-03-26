@@ -164,7 +164,7 @@ import { initYearManager } from './yearManagerUI.js';
 import { addAsset, addLiability } from './financialTablesUI.js';
 import { initMilestonesUI } from './milestonesUI.js';
 import { initSalaryTrackerUI } from './salaryTrackerUI.js';
-import { importData, exportData } from './dataService.js';
+import { getDataStore } from './enhancedDataService.js';
 
 /**
  * Set up add year form actions
@@ -350,7 +350,8 @@ function setupDataManagementActions() {
             const importDataText = document.getElementById('import-data').value;
             
             try {
-                importData(importDataText);
+                const dataStore = getDataStore();
+                dataStore.importData(importDataText);
                 hideModal();
                 window.location.reload(); // Reload to reflect imported data
             } catch (error) {

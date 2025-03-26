@@ -2,7 +2,7 @@
  * Salary Tracker UI Module
  * Handles salary history tracking and visualization
  */
-import { getCurrentData, saveData, generateId } from './dataService.js';
+import { getDataStore } from './enhancedDataService.js';
 import { formatCurrency, calculatePercentChange } from './utils.js';
 // import { renderSalaryChart } from './chartsUI.js';
 
@@ -10,27 +10,23 @@ import { formatCurrency, calculatePercentChange } from './utils.js';
  * Initialize salary tracker UI
  */
 export function initSalaryTrackerUI() {
-    renderSalaryTable();
-    setupSalaryForm();
+    const dataStore = getDataStore();
+    const salaryHistory = dataStore.getSalaryHistory();
+    renderSalaryTable(salaryHistory);
+    updateSalaryChart(salaryHistory);
 }
 
 /**
  * Render the salary history table
  */
-function renderSalaryTable() {
-    const data = getCurrentData();
-    if (!data.salaryHistory) {
-        data.salaryHistory = [];
-        saveData(data);
-    }
-    
-    // Sort by date (newest first)
-    const sortedEntries = [...data.salaryHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
-    
+function renderSalaryTable(salaryHistory) {
     const tableBody = document.getElementById('salary-table-body');
     if (!tableBody) return;
     
     tableBody.innerHTML = '';
+    
+    // Sort entries by date (most recent first)
+    const sortedEntries = [...salaryHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
     
     if (sortedEntries.length === 0) {
         const emptyRow = document.createElement('tr');
@@ -49,7 +45,6 @@ function renderSalaryTable() {
         }
     });
     
-    // Create table rows
     sortedEntries.forEach(entry => {
         const row = document.createElement('tr');
         
@@ -84,6 +79,14 @@ function renderSalaryTable() {
     });
     
     // Set up action buttons
+    setupSalaryActionButtons();
+}
+
+/**
+ * Set up salary action buttons
+ */
+function setupSalaryActionButtons() {
+    // Edit buttons
     document.querySelectorAll('.edit-salary').forEach(button => {
         button.addEventListener('click', function() {
             const id = this.getAttribute('data-id');
@@ -91,154 +94,89 @@ function renderSalaryTable() {
         });
     });
     
+    // Delete buttons
     document.querySelectorAll('.delete-salary').forEach(button => {
         button.addEventListener('click', function() {
             const id = this.getAttribute('data-id');
             deleteSalaryEntry(id);
         });
     });
-    
-    // Update chart
-    // renderSalaryChart();
-}
-
-/**
- * Set up salary form
- */
-function setupSalaryForm() {
-    const form = document.getElementById('add-salary-form');
-    if (!form) return;
-    
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const dateInput = document.getElementById('salary-date');
-        const companyInput = document.getElementById('salary-company');
-        const titleInput = document.getElementById('salary-title');
-        const amountInput = document.getElementById('salary-amount');
-        const notesInput = document.getElementById('salary-notes');
-        const entryIdInput = document.getElementById('salary-entry-id');
-        
-        if (!dateInput || !companyInput || !titleInput || !amountInput) return;
-        
-        const date = dateInput.value;
-        const company = companyInput.value.trim();
-        const title = titleInput.value.trim();
-        const amount = parseFloat(amountInput.value);
-        const notes = notesInput ? notesInput.value.trim() : '';
-        const entryId = entryIdInput ? entryIdInput.value : '';
-        
-        if (!date || !company || !title || isNaN(amount) || amount <= 0) {
-            alert('Please fill in all required fields with valid values.');
-            return;
-        }
-        
-        const data = getCurrentData();
-        if (!data.salaryHistory) {
-            data.salaryHistory = [];
-        }
-        
-        if (entryId) {
-            // Edit existing entry
-            const index = data.salaryHistory.findIndex(entry => entry.id === entryId);
-            if (index !== -1) {
-                data.salaryHistory[index] = {
-                    ...data.salaryHistory[index],
-                    date,
-                    company,
-                    title,
-                    amount,
-                    notes,
-                    lastModified: new Date().toISOString()
-                };
-            }
-        } else {
-            // Add new entry
-            data.salaryHistory.push({
-                id: generateId(),
-                date,
-                company,
-                title,
-                amount,
-                notes,
-                dateAdded: new Date().toISOString()
-            });
-        }
-        
-        saveData(data);
-        
-        // Reset form and update UI
-        form.reset();
-        document.getElementById('salary-form-title').textContent = 'Add Salary Entry';
-        if (entryIdInput) entryIdInput.value = '';
-        
-        renderSalaryTable();
-        
-        // Close modal if open
-        const modal = bootstrap.Modal.getInstance(document.getElementById('add-salary-modal'));
-        if (modal) {
-            modal.hide();
-        }
-    });
 }
 
 /**
  * Edit a salary entry
- * @param {string} id - The ID of the entry to edit
+ * @param {string} id - The ID of the salary entry to edit
  */
 function editSalaryEntry(id) {
-    const data = getCurrentData();
-    if (!data.salaryHistory) return;
-    
-    const entry = data.salaryHistory.find(entry => entry.id === id);
+    const dataStore = getDataStore();
+    const entry = dataStore.getSalaryEntry(id);
     if (!entry) return;
     
-    // Fill form with entry data
-    const dateInput = document.getElementById('salary-date');
-    const companyInput = document.getElementById('salary-company');
-    const titleInput = document.getElementById('salary-title');
-    const amountInput = document.getElementById('salary-amount');
-    const notesInput = document.getElementById('salary-notes');
-    const entryIdInput = document.getElementById('salary-entry-id');
-    
-    if (!dateInput || !companyInput || !titleInput || !amountInput || !entryIdInput) return;
-    
-    // Format date for input (YYYY-MM)
-    const dateObj = new Date(entry.date);
-    const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
-    
-    dateInput.value = formattedDate;
-    companyInput.value = entry.company;
-    titleInput.value = entry.title;
-    amountInput.value = entry.amount;
-    if (notesInput) notesInput.value = entry.notes || '';
-    entryIdInput.value = entry.id;
-    
-    // Update form title
-    document.getElementById('salary-form-title').textContent = 'Edit Salary Entry';
-    
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('add-salary-modal'));
-    modal.show();
+    showEditSalaryModal(entry);
 }
 
 /**
  * Delete a salary entry
- * @param {string} id - The ID of the entry to delete
+ * @param {string} id - The ID of the salary entry to delete
  */
 function deleteSalaryEntry(id) {
     if (!confirm('Are you sure you want to delete this salary entry?')) {
         return;
     }
     
-    const data = getCurrentData();
-    if (!data.salaryHistory) return;
+    const dataStore = getDataStore();
+    dataStore.removeSalaryEntry(id);
+    initSalaryTrackerUI();
+}
+
+/**
+ * Show edit salary modal
+ * @param {Object} entry - The salary entry to edit
+ */
+function showEditSalaryModal(entry) {
+    const modalContent = `
+        <h2>Edit Salary Entry</h2>
+        <div class="form-group">
+            <label for="salary-date">Date:</label>
+            <input type="date" id="salary-date" value="${entry.date.split('T')[0]}" />
+        </div>
+        <div class="form-group">
+            <label for="salary-company">Company:</label>
+            <input type="text" id="salary-company" value="${entry.company}" />
+        </div>
+        <div class="form-group">
+            <label for="salary-title">Title:</label>
+            <input type="text" id="salary-title" value="${entry.title}" />
+        </div>
+        <div class="form-group">
+            <label for="salary-amount">Amount (£):</label>
+            <input type="number" id="salary-amount" value="${entry.amount}" min="0" step="0.01" />
+        </div>
+        <div class="form-actions">
+            <button id="cancel-salary" class="cancel-btn">Cancel</button>
+            <button id="save-salary" class="save-btn">Save Changes</button>
+        </div>
+    `;
     
-    // Find and remove the entry
-    const index = data.salaryHistory.findIndex(entry => entry.id === id);
-    if (index !== -1) {
-        data.salaryHistory.splice(index, 1);
-        saveData(data);
-        renderSalaryTable();
+    showModal(modalContent, 'edit-salary');
+    
+    // Set up save button
+    const saveBtn = document.getElementById('save-salary');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            const date = document.getElementById('salary-date').value;
+            const company = document.getElementById('salary-company').value;
+            const title = document.getElementById('salary-title').value;
+            const amount = parseFloat(document.getElementById('salary-amount').value);
+            
+            if (date && company && title && !isNaN(amount) && amount >= 0) {
+                const dataStore = getDataStore();
+                dataStore.updateSalaryEntry(entry.id, { date, company, title, amount });
+                initSalaryTrackerUI();
+                hideModal();
+            } else {
+                alert('Please fill all fields with valid values');
+            }
+        });
     }
 } 
