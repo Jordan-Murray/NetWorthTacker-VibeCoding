@@ -931,4 +931,38 @@ textarea {
     .savings-card, .pension-calculator {
         flex: 1;
     }
+}
+
+.assets-liabilities-container {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.assets-liabilities-container .section-content {
+    flex: 1;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.assets-liabilities-container h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.assets-liabilities-container .assets-list,
+.assets-liabilities-container .liabilities-list {
+    margin-top: 1rem;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+    .assets-liabilities-container {
+        flex-direction: column;
+    }
 } 

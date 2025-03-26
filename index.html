@@ -70,46 +70,52 @@
             </div>
         </section>
 
-        <!-- Assets Section -->
-        <section id="assets" class="hidden-section">
-            <h2>Assets</h2>
-            <div class="assets-container">
-                <div class="assets-list">
-                    <h3>Your Assets <button id="add-asset" class="add-btn">+ Add Asset</button></h3>
-                    <table id="assets-table">
-                        <thead>
-                            <tr>
-                                <th>Category</th>
-                                <th>Value</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="assets-table-body">
-                            <!-- Will be populated by JavaScript -->
-                        </tbody>
-                    </table>
+        <!-- Assets & Liabilities Section -->
+        <section id="assets-liabilities" class="hidden-section">
+            <h2>Assets & Liabilities</h2>
+            <div class="assets-liabilities-container">
+                <!-- Assets Section -->
+                <div id="assets" class="section-content">
+                    <h3>Assets</h3>
+                    <div class="assets-container">
+                        <div class="assets-list">
+                            <h4>Your Assets <button id="add-asset" class="add-btn">+ Add Asset</button></h4>
+                            <table id="assets-table">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Value</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="assets-table-body">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- Liabilities Section -->
-        <section id="liabilities" class="hidden-section">
-            <h2>Liabilities</h2>
-            <div class="liabilities-container">
-                <div class="liabilities-list">
-                    <h3>Your Liabilities <button id="add-liability" class="add-btn">+ Add Liability</button></h3>
-                    <table id="liabilities-table">
-                        <thead>
-                            <tr>
-                                <th>Category</th>
-                                <th>Value</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="liabilities-table-body">
-                            <!-- Will be populated by JavaScript -->
-                        </tbody>
-                    </table>
+                <!-- Liabilities Section -->
+                <div id="liabilities" class="section-content">
+                    <h3>Liabilities</h3>
+                    <div class="liabilities-container">
+                        <div class="liabilities-list">
+                            <h4>Your Liabilities <button id="add-liability" class="add-btn">+ Add Liability</button></h4>
+                            <table id="liabilities-table">
+                                <thead>
+                                    <tr>
+                                        <th>Category</th>
+                                        <th>Value</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="liabilities-table-body">
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -130,9 +136,6 @@
                     <h3>Your Growth vs Benchmarks</h3>
                     <canvas id="growth-vs-benchmarks-chart"></canvas>
                 </div>
-            </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button id="refresh-trends-btn" style="padding: 8px 15px; background-color: #3a7bd5; color: white; border: none; border-radius: 4px; cursor: pointer;">Refresh Charts</button>
             </div>
         </section>
     </main>

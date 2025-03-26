@@ -13,6 +13,7 @@ window.mainScriptLoaded = true;
 import { getDataService } from './modules/dataService.js';
 import { FormHandler } from './modules/formHandler.js';
 import { DashboardUI } from './modules/dashboardUI.js';
+import { Router } from './modules/router.js';
 
 // Log application startup
 console.log('Net Worth Tracker initializing...');
@@ -34,7 +35,11 @@ function initializeApp() {
         const dashboardUI = new DashboardUI(dataService);
         dashboardUI.init();
         
-        // 4. Set up event listeners for app-wide events
+        // 4. Initialize router
+        const router = new Router();
+        router.init();
+        
+        // 5. Set up event listeners for app-wide events
         setupGlobalEvents();
         
         // Log successful initialization
@@ -104,6 +109,19 @@ function refreshSectionUI(section) {
         const sectionElement = document.getElementById(section);
         if (sectionElement) {
             sectionElement.dispatchEvent(new Event('refresh'));
+            
+            // If we're in the assets-liabilities section, refresh both tables
+            if (section === 'assets-liabilities') {
+                const assetsTable = document.getElementById('assets-table-body');
+                const liabilitiesTable = document.getElementById('liabilities-table-body');
+                
+                if (assetsTable) {
+                    assetsTable.dispatchEvent(new Event('refresh'));
+                }
+                if (liabilitiesTable) {
+                    liabilitiesTable.dispatchEvent(new Event('refresh'));
+                }
+            }
         }
     } catch (error) {
         console.error(`Error refreshing section ${section}:`, error);
