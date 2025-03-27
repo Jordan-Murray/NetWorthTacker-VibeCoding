@@ -20,6 +20,7 @@ import { initSalaryTrackerUI } from './modules/salaryTrackerUI.js';
 import { initYearManager } from './modules/yearManagerUI.js';
 import { initImportExport } from './modules/importExportModule.js';
 import { initDashboard } from './modules/dashboardUI.js';
+import { initFormHandlerUI } from './modules/formHandlerUI.js';
 
 // Log application startup
 console.log('Net Worth Tracker initializing...');
@@ -46,6 +47,7 @@ function initializeApp() {
     initMilestonesUI();
     initSalaryTrackerUI();
     initDashboard(); // Initialize dashboard
+    initFormHandlerUI(); // Initialize form handlers
     
     // 5. Initialize charts after other UI is ready
     initCharts();
@@ -162,6 +164,16 @@ function refreshSectionUI(section) {
         case 'salary-tracking':
             if (typeof window.refreshSalaryTable === 'function') {
                 window.refreshSalaryTable();
+            }
+            break;
+        case 'savings-tracking':
+            if (typeof window.refreshSavingsTable === 'function') {
+                window.refreshSavingsTable();
+            }
+            break;
+        case 'budgeting':
+            if (typeof window.refreshBudgetUI === 'function') {
+                window.refreshBudgetUI();
             }
             break;
     }

@@ -10,11 +10,15 @@ import { updateDashboardSummary } from './dashboardUI.js';
  * Initialize form handler UI
  */
 export function initFormHandlerUI() {
+    console.log('initFormHandlerUI');
     const dataStore = getDataStore();
     const currentYear = dataStore.getCurrentYear();
     setupAssetForm(currentYear);
     setupLiabilityForm(currentYear);
     setupSavingForm(currentYear);
+    setupMilestoneForm();
+    setupSalaryForm();
+    setupBudgetForm();
 }
 
 /**
@@ -90,34 +94,24 @@ function setupLiabilityForm(currentYear) {
  * @param {string} currentYear - The current year
  */
 function setupSavingForm(currentYear) {
-    const form = document.getElementById('add-saving-form');
-    if (!form) return;
+    const addSavingBtn = document.getElementById('add-saving');
+    if (!addSavingBtn) return;
     
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const date = document.getElementById('saving-date').value;
-        const amount = parseFloat(document.getElementById('saving-amount').value);
-        const category = document.getElementById('saving-category').value;
-        const notes = document.getElementById('saving-notes').value.trim();
-        
-        if (!date || isNaN(amount) || amount < 0 || !category) {
-            alert('Please fill all required fields with valid values');
-            return;
-        }
-        
-        const dataStore = getDataStore();
-        dataStore.addSaving(currentYear, {
-            date,
-            amount,
-            category,
-            notes,
-            dateAdded: new Date().toISOString()
-        });
-        
-        form.reset();
-        hideModal();
-        initFormHandlerUI();
+    // Set up add saving button
+    addSavingBtn.addEventListener('click', function() {
+        showAddSavingModal();
+    });
+}
+
+/**
+ * Set up milestone form
+ */
+function setupMilestoneForm() {
+    const addMilestoneBtn = document.getElementById('add-milestone');
+    if (!addMilestoneBtn) return;
+    
+    addMilestoneBtn.addEventListener('click', function() {
+        showAddMilestoneModal();
     });
 }
 
@@ -418,4 +412,465 @@ function saveLiabilityForm(yearId) {
     // Update UI
     renderFinancialTables(yearId);
     updateDashboardSummary();
+}
+
+/**
+ * Show the add saving modal
+ */
+export function showAddSavingModal() {
+    const modalBody = document.getElementById('modal-body');
+    if (!modalBody) return;
+    
+    const yearSelect = document.getElementById('year-select');
+    const selectedYear = yearSelect ? yearSelect.value : null;
+    
+    if (!selectedYear) {
+        alert('Please select a year first.');
+        return;
+    }
+    
+    // Create form HTML
+    modalBody.innerHTML = `
+        <h2>Add New Saving</h2>
+        <form id="add-saving-form">
+            <div class="form-group">
+                <label for="saving-date">Date:</label>
+                <input type="date" id="saving-date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="saving-amount">Amount (£):</label>
+                <input type="number" id="saving-amount" class="form-control" min="0" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="saving-category">Category:</label>
+                <select id="saving-category" class="form-control">
+                    <option value="Emergency Fund">Emergency Fund</option>
+                    <option value="Retirement">Retirement</option>
+                    <option value="Investment">Investment</option>
+                    <option value="House Deposit">House Deposit</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="saving-notes">Notes:</label>
+                <textarea id="saving-notes" class="form-control"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" onclick="document.getElementById('modal-container').classList.add('modal-hidden')">Cancel</button>
+                <button type="submit" class="save-btn">Save</button>
+            </div>
+        </form>
+    `;
+    
+    // Show modal
+    const modalContainer = document.getElementById('modal-container');
+    if (modalContainer) {
+        modalContainer.classList.remove('modal-hidden');
+        modalContainer.classList.add('modal-visible');
+    }
+    
+    // Set up form submission
+    const form = document.getElementById('add-saving-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveSavingForm(selectedYear);
+        });
+    }
+}
+
+/**
+ * Save the saving form
+ * @param {string} yearId - The year to save the saving to
+ */
+function saveSavingForm(yearId) {
+    const dateInput = document.getElementById('saving-date');
+    const amountInput = document.getElementById('saving-amount');
+    const categoryInput = document.getElementById('saving-category');
+    const notesInput = document.getElementById('saving-notes');
+    
+    if (!dateInput || !amountInput || !categoryInput) return;
+    
+    const date = dateInput.value;
+    const amount = parseFloat(amountInput.value);
+    const category = categoryInput.value;
+    const notes = notesInput ? notesInput.value.trim() : '';
+    
+    if (!date || isNaN(amount) || amount < 0 || !category) {
+        alert('Please fill in all required fields with valid values.');
+        return;
+    }
+    
+    const dataStore = getDataStore();
+    
+    // Ensure the year exists in the data store
+    if (!dataStore.data.years[yearId]) {
+        dataStore.data.years[yearId] = {
+            assets: [],
+            liabilities: [],
+            savings: []
+        };
+    }
+    
+    // Ensure the savings array exists for this year
+    if (!dataStore.data.years[yearId].savings) {
+        dataStore.data.years[yearId].savings = [];
+    }
+    
+    // Add new saving entry
+    dataStore.data.years[yearId].savings.push({
+        id: dataStore.generateId(),
+        date,
+        amount,
+        category,
+        notes,
+        dateAdded: new Date().toISOString()
+    });
+    
+    dataStore.saveData();
+    
+    // Close modal
+    const modalContainer = document.getElementById('modal-container');
+    if (modalContainer) {
+        modalContainer.classList.add('modal-hidden');
+        modalContainer.classList.remove('modal-visible');
+    }
+    
+    // Update UI
+    if (typeof window.refreshSavingsTable === 'function') {
+        window.refreshSavingsTable();
+    }
+    updateDashboardSummary();
+}
+
+/**
+ * Show the add milestone modal
+ */
+export function showAddMilestoneModal() {
+    const modalBody = document.getElementById('modal-body');
+    if (!modalBody) return;
+    
+    // Create form HTML
+    modalBody.innerHTML = `
+        <h2>Add New Milestone</h2>
+        <form id="add-milestone-form">
+            <div class="form-group">
+                <label for="milestone-name">Name:</label>
+                <input type="text" id="milestone-name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="milestone-target">Target Net Worth (£):</label>
+                <input type="number" id="milestone-target" class="form-control" min="0" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="milestone-date">Target Date:</label>
+                <input type="date" id="milestone-date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="milestone-notes">Notes:</label>
+                <textarea id="milestone-notes" class="form-control"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" onclick="document.getElementById('modal-container').classList.add('modal-hidden')">Cancel</button>
+                <button type="submit" class="save-btn">Save</button>
+            </div>
+        </form>
+    `;
+    
+    // Show modal
+    const modalContainer = document.getElementById('modal-container');
+    if (modalContainer) {
+        modalContainer.classList.remove('modal-hidden');
+        modalContainer.classList.add('modal-visible');
+    }
+    
+    // Set up form submission
+    const form = document.getElementById('add-milestone-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveMilestoneForm();
+        });
+    }
+}
+
+/**
+ * Save the milestone form
+ */
+function saveMilestoneForm() {
+    const nameInput = document.getElementById('milestone-name');
+    const targetInput = document.getElementById('milestone-target');
+    const dateInput = document.getElementById('milestone-date');
+    const notesInput = document.getElementById('milestone-notes');
+    
+    if (!nameInput || !targetInput || !dateInput) return;
+    
+    const name = nameInput.value.trim();
+    const target = parseFloat(targetInput.value);
+    const date = dateInput.value;
+    const notes = notesInput ? notesInput.value.trim() : '';
+    
+    if (!name || isNaN(target) || target < 0 || !date) {
+        alert('Please fill in all required fields with valid values.');
+        return;
+    }
+    
+    const dataStore = getDataStore();
+    
+    if (!dataStore.data.milestones) {
+        dataStore.data.milestones = [];
+    }
+    
+    // Add new milestone
+    dataStore.data.milestones.push({
+        id: dataStore.generateId(),
+        name,
+        target,
+        date,
+        notes,
+        dateAdded: new Date().toISOString(),
+        completed: false
+    });
+    
+    dataStore.saveData();
+    
+    // Close modal
+    const modalContainer = document.getElementById('modal-container');
+    if (modalContainer) {
+        modalContainer.classList.add('modal-hidden');
+        modalContainer.classList.remove('modal-visible');
+    }
+    
+    // Update UI
+    if (typeof window.refreshMilestones === 'function') {
+        window.refreshMilestones();
+    }
+}
+
+/**
+ * Set up salary form
+ */
+function setupSalaryForm() {
+    const addSalaryBtn = document.getElementById('add-salary');
+    if (!addSalaryBtn) return;
+    
+    addSalaryBtn.addEventListener('click', function() {
+        showAddSalaryModal();
+    });
+}
+
+/**
+ * Show the add salary modal
+ */
+export function showAddSalaryModal() {
+    const modalBody = document.getElementById('modal-body');
+    if (!modalBody) return;
+    
+    // Create form HTML
+    modalBody.innerHTML = `
+        <h2>Add New Salary Entry</h2>
+        <form id="add-salary-form">
+            <div class="form-group">
+                <label for="salary-date">Date:</label>
+                <input type="date" id="salary-date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="salary-company">Company:</label>
+                <input type="text" id="salary-company" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="salary-title">Title:</label>
+                <input type="text" id="salary-title" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="salary-amount">Amount (£):</label>
+                <input type="number" id="salary-amount" class="form-control" min="0" step="0.01" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" onclick="document.getElementById('modal-container').classList.add('modal-hidden')">Cancel</button>
+                <button type="submit" class="save-btn">Save</button>
+            </div>
+        </form>
+    `;
+    
+    // Show modal
+    const modalContainer = document.getElementById('modal-container');
+    if (modalContainer) {
+        modalContainer.classList.remove('modal-hidden');
+        modalContainer.classList.add('modal-visible');
+    }
+    
+    // Set up form submission
+    const form = document.getElementById('add-salary-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveSalaryForm();
+        });
+    }
+}
+
+/**
+ * Save the salary form
+ */
+function saveSalaryForm() {
+    const dateInput = document.getElementById('salary-date');
+    const companyInput = document.getElementById('salary-company');
+    const titleInput = document.getElementById('salary-title');
+    const amountInput = document.getElementById('salary-amount');
+    
+    if (!dateInput || !companyInput || !titleInput || !amountInput) return;
+    
+    const date = dateInput.value;
+    const company = companyInput.value.trim();
+    const title = titleInput.value.trim();
+    const amount = parseFloat(amountInput.value);
+    
+    if (!date || !company || !title || isNaN(amount) || amount < 0) {
+        alert('Please fill in all required fields with valid values.');
+        return;
+    }
+    
+    const dataStore = getDataStore();
+    
+    if (!dataStore.data.salaryHistory) {
+        dataStore.data.salaryHistory = [];
+    }
+    
+    // Add new salary entry
+    dataStore.data.salaryHistory.push({
+        id: dataStore.generateId(),
+        date,
+        company,
+        title,
+        amount,
+        dateAdded: new Date().toISOString()
+    });
+    
+    dataStore.saveData();
+    
+    // Close modal
+    const modalContainer = document.getElementById('modal-container');
+    if (modalContainer) {
+        modalContainer.classList.add('modal-hidden');
+        modalContainer.classList.remove('modal-visible');
+    }
+    
+    // Update UI
+    if (typeof window.refreshSalaryTable === 'function') {
+        window.refreshSalaryTable();
+    }
+}
+
+/**
+ * Set up budget form
+ */
+function setupBudgetForm() {
+    const calculateBudgetBtn = document.getElementById('calculate-budget');
+    if (!calculateBudgetBtn) return;
+    
+    calculateBudgetBtn.addEventListener('click', function() {
+        calculateBudget();
+    });
+    
+    const calculateJointBtn = document.getElementById('calculate-joint');
+    if (!calculateJointBtn) return;
+    
+    calculateJointBtn.addEventListener('click', function() {
+        calculateJointBudget();
+    });
+}
+
+/**
+ * Calculate budget based on income inputs
+ */
+function calculateBudget() {
+    const yourIncomeInput = document.getElementById('your-income');
+    const spouseIncomeInput = document.getElementById('spouse-income');
+    const resultsContainer = document.getElementById('budget-results');
+    
+    if (!yourIncomeInput || !spouseIncomeInput || !resultsContainer) return;
+    
+    const yourIncome = parseFloat(yourIncomeInput.value) || 0;
+    const spouseIncome = parseFloat(spouseIncomeInput.value) || 0;
+    const totalIncome = yourIncome + spouseIncome;
+    
+    if (totalIncome <= 0) {
+        alert('Please enter valid income values.');
+        return;
+    }
+    
+    // Calculate percentages
+    const yourPercentage = (yourIncome / totalIncome) * 100;
+    const spousePercentage = (spouseIncome / totalIncome) * 100;
+    
+    // Update results
+    document.getElementById('total-income').textContent = `£${totalIncome.toLocaleString()}`;
+    document.getElementById('your-contribution').textContent = `£${yourIncome.toLocaleString()}`;
+    document.getElementById('your-percentage').textContent = `${yourPercentage.toFixed(1)}%`;
+    document.getElementById('spouse-contribution').textContent = `£${spouseIncome.toLocaleString()}`;
+    document.getElementById('spouse-percentage').textContent = `${spousePercentage.toFixed(1)}%`;
+    
+    // Show results
+    resultsContainer.style.display = 'block';
+}
+
+/**
+ * Calculate joint account contributions
+ */
+function calculateJointBudget() {
+    const jointExpensesInput = document.getElementById('joint-expenses');
+    const contributionTypeSelect = document.getElementById('contribution-type');
+    const customSplitInput = document.getElementById('your-split');
+    const jointResults = document.getElementById('joint-results');
+    
+    if (!jointExpensesInput || !contributionTypeSelect || !jointResults) return;
+    
+    const jointExpenses = parseFloat(jointExpensesInput.value) || 0;
+    const contributionType = contributionTypeSelect.value;
+    
+    if (jointExpenses <= 0) {
+        alert('Please enter valid joint expenses.');
+        return;
+    }
+    
+    let yourTransfer, spouseTransfer;
+    
+    switch (contributionType) {
+        case 'equal':
+            yourTransfer = jointExpenses / 2;
+            spouseTransfer = jointExpenses / 2;
+            break;
+        case 'proportional':
+            const yourIncome = parseFloat(document.getElementById('your-income').value) || 0;
+            const spouseIncome = parseFloat(document.getElementById('spouse-income').value) || 0;
+            const totalIncome = yourIncome + spouseIncome;
+            
+            if (totalIncome <= 0) {
+                alert('Please calculate total income first.');
+                return;
+            }
+            
+            yourTransfer = (yourIncome / totalIncome) * jointExpenses;
+            spouseTransfer = (spouseIncome / totalIncome) * jointExpenses;
+            break;
+        case 'custom':
+            const yourSplit = parseFloat(customSplitInput.value) || 50;
+            yourTransfer = (yourSplit / 100) * jointExpenses;
+            spouseTransfer = ((100 - yourSplit) / 100) * jointExpenses;
+            break;
+    }
+    
+    // Update results
+    document.getElementById('total-expenses').textContent = `£${jointExpenses.toLocaleString()}`;
+    document.getElementById('your-transfer').textContent = `£${yourTransfer.toLocaleString()}`;
+    document.getElementById('spouse-transfer').textContent = `£${spouseTransfer.toLocaleString()}`;
+    
+    // Show results
+    jointResults.style.display = 'block';
+    
+    // Update chart if it exists
+    if (typeof window.updateJointExpensesChart === 'function') {
+        window.updateJointExpensesChart(yourTransfer, spouseTransfer);
+    }
 } 
