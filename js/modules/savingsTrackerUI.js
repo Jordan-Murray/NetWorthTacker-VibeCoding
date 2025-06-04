@@ -11,6 +11,9 @@ export function initSavingsTrackerUI() {
     window.refreshSavingsTable = refreshSavingsTable;
 
     setupPensionCalculator();
+
+    // initial order update
+    updateFinancialOrder();
 }
 
 /**
@@ -81,6 +84,8 @@ function updateSummary(year) {
 
     avgElem.textContent = formatCurrency(avg);
     rateElem.textContent = `${rate.toFixed(1)}%`;
+
+    updateFinancialOrder();
 }
 
 export function setupPensionCalculator() {
@@ -110,5 +115,29 @@ export function setupPensionCalculator() {
             const progress = ds.getEmergencyFundProgress();
             progressBar.style.width = `${Math.min(100, progress).toFixed(0)}%`;
         }
+
+        updateFinancialOrder();
     });
 }
+
+function updateFinancialOrder() {
+    if (!document || typeof document.querySelectorAll !== 'function') return;
+
+    const ds = getDataStore();
+    const progress = ds.getEmergencyFundProgress();
+    const steps = document.querySelectorAll('#financial-steps .step');
+    if (!steps.length) return;
+
+    steps.forEach(step => {
+        step.classList.remove('active');
+        step.classList.remove('completed');
+    });
+
+    if (progress >= 100) {
+        steps[0].classList.add('completed');
+        if (steps[1]) steps[1].classList.add('active');
+    } else {
+        steps[0].classList.add('active');
+    }
+}
+
