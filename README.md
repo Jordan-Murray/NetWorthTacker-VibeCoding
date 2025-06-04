@@ -52,6 +52,16 @@ Your financial data never leaves your computer - everything is stored locally in
 
 This project is open source and available under the MIT License.
 
+## Running Tests
+
+After cloning the repository and installing the dependencies, run:
+
+```bash
+npm test
+```
+
+This executes the Jest test suite located in the `tests/` directory.
+
 ## Contributions
 
 Contributions, issues, and feature requests are welcome! 
