@@ -4285,7 +4285,7 @@ console.log('MAIN.JS LOADED - BEFORE IMPORTS');
  */
 import { initYearManager } from './modules/yearManagerUI.js';
 import { updateDashboardSummary } from './modules/dashboardUI.js';
-import { renderDashboardCharts, renderTrendsCharts } from './modules/chartsUI.js';
+import { renderDashboardCharts, renderTrendsCharts } from './modules/chartModule.js';
 import { initMilestonesUI } from './modules/milestonesUI.js';
 import { initSalaryTrackerUI } from './modules/salaryTrackerUI.js';
 import { initSettingsIcon } from './modules/dataManagementUI.js';
@@ -5644,7 +5644,7 @@ import { getCurrentData, saveData } from './dataService.js';
 import { formatCurrency } from './utils.js';
 import { showAssetForm, showLiabilityForm } from './formHandlerUI.js';
 import { updateDashboardSummary } from './dashboardUI.js';
-import { renderDashboardCharts } from './chartsUI.js';
+import { renderDashboardCharts } from './chartModule.js';
 
 /**
  * Render the financial tables (assets & liabilities) for the specified year
@@ -5920,7 +5920,7 @@ export function updateTotals(yearId) {
 import { getCurrentData, saveData, generateId } from './dataService.js';
 import { renderFinancialTables } from './financialTablesUI.js';
 import { updateDashboardSummary } from './dashboardUI.js';
-import { renderDashboardCharts } from './chartsUI.js';
+import { renderDashboardCharts } from './chartModule.js';
 
 /**
  * Initialize form handlers
@@ -6463,7 +6463,7 @@ function deleteMilestone(id) {
  */
 import { getCurrentData, saveData, generateId } from './dataService.js';
 import { formatCurrency, calculatePercentChange } from './utils.js';
-import { renderSalaryChart } from './chartsUI.js';
+import { renderSalaryChart } from './chartModule.js';
 
 /**
  * Initialize salary tracker UI
@@ -6764,7 +6764,7 @@ export function getRandomColor(opacity = 0.7) {
 import { getCurrentData, saveData } from './dataService.js';
 import { renderFinancialTables } from './financialTablesUI.js';
 import { updateDashboardSummary } from './dashboardUI.js';
-import { renderDashboardCharts } from './chartsUI.js';
+import { renderDashboardCharts } from './chartModule.js';
 
 /**
  * Initialize year manager UI
