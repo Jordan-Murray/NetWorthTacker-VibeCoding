@@ -221,4 +221,7 @@ function updateMilestonesChart(milestones) {
         data: data,
         options: options
     });
-} 
+}
+
+// Expose refresh function globally for backward compatibility
+window.refreshMilestones = initMilestonesUI;
