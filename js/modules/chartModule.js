@@ -54,6 +54,7 @@ export function renderTrendsCharts() {
     updateNetWorthGrowthChart();
     updateAssetCategoriesTimeChart();
     updateGrowthVsBenchmarksChart();
+    updateSalaryGrowthChart();
 }
 
 /**
