@@ -1,20 +1,20 @@
 /* Global Styles */
 :root {
-    --primary-color: #3a7bd5;
-    --primary-light: #6fa4ff;
-    --primary-dark: #0051a2;
-    --secondary-color: #00d1b2;
+    --primary-color: #4c6ef5;
+    --primary-light: #748ffc;
+    --primary-dark: #364fc7;
+    --secondary-color: #dbe4ff;
     --text-color: #333;
     --text-light: #666;
     --text-dark: #111;
-    --bg-color: #f9f9f9;
+    --bg-color: #f5f7fa;
     --card-bg: #fff;
     --border-color: #e0e0e0;
     --danger-color: #ff3860;
     --success-color: #23d160;
     --warning-color: #ffdd57;
-    --radius: 6px;
-    --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    --radius: 8px;
+    --shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     --transition: all 0.3s ease;
 }
 
@@ -23,7 +23,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text-color);
     background-color: var(--bg-color);
     line-height: 1.6;
@@ -49,17 +49,19 @@ a:hover {
 
 /* Layout */
 header {
-    background-color: var(--card-bg);
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
     box-shadow: var(--shadow);
     padding: 1rem 2rem;
     position: sticky;
     top: 0;
     z-index: 100;
+    color: #fff;
 }
 
 header h1 {
     margin: 0;
     font-size: 1.5rem;
+    color: #fff;
 }
 
 main {
@@ -145,17 +147,17 @@ section::before {
 #main-nav a {
     padding: 0.5rem 1rem;
     border-radius: var(--radius);
-    color: var(--text-color);
+    color: rgba(255, 255, 255, 0.85);
     font-weight: 500;
 }
 
 #main-nav a:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: rgba(255, 255, 255, 0.15);
 }
 
 #main-nav a.active {
-    background-color: var(--primary-color);
-    color: white;
+    background-color: rgba(255, 255, 255, 0.25);
+    color: #fff;
 }
 
 /* Cards */
@@ -171,6 +173,7 @@ section::before {
     border-radius: var(--radius);
     padding: 1.5rem;
     box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
 }
 
 .card h3 {
@@ -218,6 +221,7 @@ section::before {
     border-radius: var(--radius);
     padding: 1.5rem;
     box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
 }
 
 .chart-wrapper h3 {
@@ -286,8 +290,8 @@ tfoot {
 
 /* Forms and Buttons */
 button {
-    background-color: var(--primary-color);
-    color: white;
+    background-image: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
+    color: #fff;
     border: none;
     border-radius: var(--radius);
     padding: 0.5rem 1rem;
@@ -297,7 +301,7 @@ button {
 }
 
 button:hover {
-    background-color: var(--primary-dark);
+    filter: brightness(1.1);
 }
 
 .add-btn {
