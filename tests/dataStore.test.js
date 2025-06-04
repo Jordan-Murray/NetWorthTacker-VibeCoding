@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { DataStore } from '../js/modules/enhancedDataService.js';
 
 class StorageMock {
