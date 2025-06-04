@@ -4,7 +4,7 @@
  */
 import { getDataStore } from './enhancedDataService.js';
 import { formatCurrency, calculatePercentChange } from './utils.js';
-// import { renderSalaryChart } from './chartsUI.js';
+// import { renderSalaryChart } from './chartModule.js';
 
 /**
  * Initialize salary tracker UI

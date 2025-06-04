@@ -5,7 +5,7 @@
 import { getDataStore } from './enhancedDataService.js';
 import { renderFinancialTables } from './financialTablesUI.js';
 import { updateDashboardSummary } from './dashboardUI.js';
-// import { renderDashboardCharts } from './chartsUI.js';
+// import { renderDashboardCharts } from './chartModule.js';
 
 /**
  * Initialize year manager UI
