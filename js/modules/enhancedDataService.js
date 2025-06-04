@@ -727,13 +727,22 @@ export class DataStore {
         
         return false;
     }
-    
+
     /**
      * Get all salary entries
      * @returns {Array} Salary entries
      */
     getSalaryHistory() {
         return [...this.data.salaryHistory];
+    }
+
+    /**
+     * Get a single salary entry by ID
+     * @param {string} entryId - Entry ID
+     * @returns {Object|null} The salary entry or null if not found
+     */
+    getSalaryEntry(entryId) {
+        return this.data.salaryHistory.find(entry => entry.id === entryId) || null;
     }
     
     /**
