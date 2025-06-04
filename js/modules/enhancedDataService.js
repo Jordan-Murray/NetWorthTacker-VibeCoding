@@ -969,6 +969,84 @@ export class DataStore {
         if (totalSalary === 0) return 0;
         return (this.getTotalSavings(year) / totalSalary) * 100;
     }
+
+    /**
+     * Get all savings across years
+     * @returns {Array} All saving entries
+     */
+    getAllSavings() {
+        return Object.values(this.data.years).flatMap(y => y.savings || []);
+    }
+
+    /**
+     * Get total monthly savings average for recent months
+     * @param {number} months - Number of months to average
+     * @returns {number} Monthly savings average
+     */
+    getTotalMonthlySavings(months = 3) {
+        const cutoff = new Date();
+        cutoff.setMonth(cutoff.getMonth() - months);
+        const recent = this.getAllSavings().filter(e => new Date(e.date) >= cutoff);
+        if (recent.length === 0) return 0;
+        const total = recent.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+        return total / Math.min(months, recent.length);
+    }
+
+    /**
+     * Set emergency fund goal in months
+     * @param {number} months - Number of months
+     */
+    setEmergencyFundGoal(months) {
+        this.data.emergencyFundGoal = parseInt(months, 10);
+        this.saveData();
+    }
+
+    /**
+     * Get emergency fund goal in months
+     * @returns {number} Goal months
+     */
+    getEmergencyFundGoal() {
+        return this.data.emergencyFundGoal;
+    }
+
+    /**
+     * Get emergency fund progress percentage
+     * @returns {number} Progress percent
+     */
+    getEmergencyFundProgress() {
+        const latestSalary = [...this.data.salaryHistory]
+            .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+        if (!latestSalary) return 0;
+        const monthlyIncome = latestSalary.amount / 12;
+        const target = monthlyIncome * this.getEmergencyFundGoal();
+        if (target === 0) return 0;
+        const totalEmergency = this.getAllSavings()
+            .filter(e => e.category === 'Emergency Fund')
+            .reduce((sum, e) => sum + parseFloat(e.amount), 0);
+        return (totalEmergency / target) * 100;
+    }
+
+    /**
+     * Calculate savings percentage including pension contributions
+     * @param {number} personalContributionPercent - Personal pension percent
+     * @param {number} employerContributionPercent - Employer pension percent
+     * @returns {number} Savings rate percentage
+     */
+    calculateSavingsPercentage(personalContributionPercent, employerContributionPercent) {
+        const sortedSalaries = [...this.data.salaryHistory]
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+        if (sortedSalaries.length === 0) {
+            return 0;
+        }
+        const recentSalary = sortedSalaries[0].amount;
+        const totalMonthlySavings = this.getTotalMonthlySavings();
+        const personal = (recentSalary / 12) * (personalContributionPercent / 100);
+        const employer = (recentSalary / 12) * (employerContributionPercent / 100);
+        const totalMonthlyIncome = recentSalary / 12;
+        const totalSavings = totalMonthlySavings + personal + employer;
+        if (totalMonthlyIncome === 0) return 0;
+        return (totalSavings / totalMonthlyIncome) * 100;
+    }
     
     // Utils
     

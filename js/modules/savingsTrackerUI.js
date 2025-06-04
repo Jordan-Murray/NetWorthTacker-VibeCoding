@@ -9,6 +9,8 @@ export function initSavingsTrackerUI() {
     refreshSavingsTable();
     // expose for other modules
     window.refreshSavingsTable = refreshSavingsTable;
+
+    setupPensionCalculator();
 }
 
 /**
@@ -79,4 +81,34 @@ function updateSummary(year) {
 
     avgElem.textContent = formatCurrency(avg);
     rateElem.textContent = `${rate.toFixed(1)}%`;
+}
+
+function setupPensionCalculator() {
+    const calcBtn = document.getElementById('calculate-savings');
+    if (!calcBtn) return;
+
+    calcBtn.addEventListener('click', () => {
+        const personalInput = document.getElementById('personal-contribution');
+        const employerInput = document.getElementById('employer-contribution');
+        const goalInput = document.getElementById('emergency-fund-goal');
+
+        const personal = parseFloat(personalInput?.value) || 0;
+        const employer = parseFloat(employerInput?.value) || 0;
+        const goalMonths = parseInt(goalInput?.value, 10) || 3;
+
+        const ds = getDataStore();
+        ds.setEmergencyFundGoal(goalMonths);
+
+        const rate = ds.calculateSavingsPercentage(personal, employer);
+        const rateElem = document.getElementById('savings-rate');
+        if (rateElem) {
+            rateElem.textContent = `${rate.toFixed(1)}%`;
+        }
+
+        const progressBar = document.getElementById('emergency-fund-progress');
+        if (progressBar) {
+            const progress = ds.getEmergencyFundProgress();
+            progressBar.style.width = `${Math.min(100, progress).toFixed(0)}%`;
+        }
+    });
 }
