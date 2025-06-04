@@ -5,6 +5,7 @@
 import { getDataStore } from './enhancedDataService.js';
 import { renderFinancialTables } from './financialTablesUI.js';
 import { updateDashboardSummary } from './dashboardUI.js';
+import { showModal } from './modalModule.js';
 
 /**
  * Initialize form handler UI
@@ -663,51 +664,31 @@ function setupSalaryForm() {
  * Show the add salary modal
  */
 export function showAddSalaryModal() {
-    const modalBody = document.getElementById('modal-body');
-    if (!modalBody) return;
-    
-    // Create form HTML
-    modalBody.innerHTML = `
+    const modalContent = `
         <h2>Add New Salary Entry</h2>
-        <form id="add-salary-form">
-            <div class="form-group">
-                <label for="salary-date">Date:</label>
-                <input type="date" id="salary-date" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="salary-company">Company:</label>
-                <input type="text" id="salary-company" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="salary-title">Title:</label>
-                <input type="text" id="salary-title" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="salary-amount">Amount (£):</label>
-                <input type="number" id="salary-amount" class="form-control" min="0" step="0.01" required>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="cancel-btn" onclick="document.getElementById('modal-container').classList.add('modal-hidden')">Cancel</button>
-                <button type="submit" class="save-btn">Save</button>
-            </div>
-        </form>
+        <div class="form-group">
+            <label for="salary-date">Date:</label>
+            <input type="date" id="salary-date" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="salary-company">Company:</label>
+            <input type="text" id="salary-company" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="salary-title">Title:</label>
+            <input type="text" id="salary-title" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="salary-amount">Amount (£):</label>
+            <input type="number" id="salary-amount" class="form-control" min="0" step="0.01" required>
+        </div>
+        <div class="form-actions">
+            <button id="cancel-salary" class="cancel-btn">Cancel</button>
+            <button id="save-salary" class="save-btn">Add Salary</button>
+        </div>
     `;
-    
-    // Show modal
-    const modalContainer = document.getElementById('modal-container');
-    if (modalContainer) {
-        modalContainer.classList.remove('modal-hidden');
-        modalContainer.classList.add('modal-visible');
-    }
-    
-    // Set up form submission
-    const form = document.getElementById('add-salary-form');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            saveSalaryForm();
-        });
-    }
+
+    showModal(modalContent, 'add-salary');
 }
 
 /**

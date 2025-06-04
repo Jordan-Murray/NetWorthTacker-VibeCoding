@@ -30,7 +30,7 @@ function renderSalaryTable(salaryHistory) {
     
     if (sortedEntries.length === 0) {
         const emptyRow = document.createElement('tr');
-        emptyRow.innerHTML = '<td colspan="5" class="text-center">No salary entries yet. Add your first entry!</td>';
+        emptyRow.innerHTML = '<td colspan="4" class="text-center">No salary entries yet. Add your first entry!</td>';
         tableBody.appendChild(emptyRow);
         return;
     }
@@ -61,7 +61,6 @@ function renderSalaryTable(salaryHistory) {
         row.innerHTML = `
             <td>${formattedDate}</td>
             <td>${entry.company}</td>
-            <td>${entry.title}</td>
             <td>${formatCurrency(entry.amount)} ${increaseText}</td>
             <td>
                 <div class="btn-group btn-group-sm" role="group">

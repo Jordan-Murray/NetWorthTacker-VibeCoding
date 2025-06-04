@@ -280,16 +280,18 @@ function setupAddSalaryActions() {
     if (saveSalaryBtn) {
         const newBtn = saveSalaryBtn.cloneNode(true);
         saveSalaryBtn.parentNode.replaceChild(newBtn, saveSalaryBtn);
-        
+
         newBtn.addEventListener('click', () => {
             const dateInput = document.getElementById('salary-date').value;
             const company = document.getElementById('salary-company').value;
             const title = document.getElementById('salary-title').value;
             const amountInput = document.getElementById('salary-amount').value;
             const amount = parseFloat(amountInput);
-            
+
             if (dateInput && company && title && !isNaN(amount) && amount >= 0) {
                 try {
+                    const dataStore = getDataStore();
+                    dataStore.addSalaryEntry(new Date(dateInput), company, title, amount);
                     initSalaryTrackerUI();
                     hideModal();
                 } catch (error) {
