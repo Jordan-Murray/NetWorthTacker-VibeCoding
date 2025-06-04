@@ -66,10 +66,10 @@ function renderSalaryTable(salaryHistory) {
             <td>
                 <div class="btn-group btn-group-sm" role="group">
                     <button type="button" class="btn btn-outline-primary edit-salary" data-id="${entry.id}">
-                        <i class="fas fa-edit"></i>
+                        <i class="fa-solid fa-edit"></i>
                     </button>
                     <button type="button" class="btn btn-outline-danger delete-salary" data-id="${entry.id}">
-                        <i class="fas fa-trash"></i>
+                        <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
             </td>
@@ -185,29 +185,20 @@ function showEditSalaryModal(entry) {
  * Update the salary chart
  * @param {Array} salaryHistory - Array of salary entries
  */
+let salaryChart;
+
 function updateSalaryChart(salaryHistory) {
-    const chartContainer = document.getElementById('salary-chart');
-    if (!chartContainer) return;
-    
-    // Clear existing chart
-    chartContainer.innerHTML = '';
-    
+    const canvas = document.getElementById('salary-growth-chart');
+    if (!canvas) return;
+
+    // Destroy existing chart if present
+    if (salaryChart) {
+        salaryChart.destroy();
+    }
+
     // Sort entries by date (oldest to newest)
     const sortedEntries = [...salaryHistory].sort((a, b) => new Date(a.date) - new Date(b.date));
-    
-    // Create chart HTML
-    const chartHTML = `
-        <div class="chart-container">
-            <canvas id="salary-chart-canvas"></canvas>
-        </div>
-    `;
-    
-    chartContainer.innerHTML = chartHTML;
-    
-    // Get canvas context
-    const canvas = document.getElementById('salary-chart-canvas');
-    if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     
     // Calculate percentage changes
@@ -276,7 +267,7 @@ function updateSalaryChart(salaryHistory) {
     };
     
     // Create chart
-    new Chart(ctx, {
+    salaryChart = new Chart(ctx, {
         type: 'line',
         data: chartData,
         options: options
