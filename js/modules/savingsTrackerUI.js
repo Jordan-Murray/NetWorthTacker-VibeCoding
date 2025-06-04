@@ -83,7 +83,7 @@ function updateSummary(year) {
     rateElem.textContent = `${rate.toFixed(1)}%`;
 }
 
-function setupPensionCalculator() {
+export function setupPensionCalculator() {
     const calcBtn = document.getElementById('calculate-savings');
     if (!calcBtn) return;
 
