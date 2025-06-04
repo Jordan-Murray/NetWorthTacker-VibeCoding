@@ -1,0 +1,3 @@
+# Dependencies for Net Worth Tracker
+# Node.js project dependencies managed via npm
+jest==29.7.0

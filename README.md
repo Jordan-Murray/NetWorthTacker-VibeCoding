@@ -17,10 +17,11 @@ A simple yet powerful web application to track your net worth over time, built u
 
 ### Installation
 
-1. Clone or download this repository
-2. Open `index.html` in your web browser
+1. Clone or download this repository.
+2. *(Optional)* Run `./setup.sh` to install the Node.js dependencies. This step is required if you want to run the test suite.
+3. Open `index.html` in your web browser.
 
-No server setup or installation required - this application runs entirely in your browser.
+No server setup or installation is required for basic usage&mdash;the application runs entirely in your browser. The setup script simply installs the development dependencies so that `npm test` works.
 
 ### How to Use
 
