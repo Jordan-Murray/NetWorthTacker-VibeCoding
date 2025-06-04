@@ -82,6 +82,9 @@ function setupYearActions() {
         // Update UI components based on selected year
         renderFinancialTables(selectedYear);
         updateDashboardSummary();
+        if (typeof window.refreshSavingsTable === 'function') {
+            window.refreshSavingsTable(selectedYear);
+        }
         
         // Update delete button visibility (don't allow deleting the last year)
         if (deleteYearBtn) {

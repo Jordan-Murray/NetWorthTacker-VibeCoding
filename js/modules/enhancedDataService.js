@@ -787,7 +787,7 @@ export class DataStore {
         // Sort by date (oldest first for the chart)
         const sortedEntries = [...this.data.salaryHistory]
             .sort((a, b) => new Date(a.date) - new Date(b.date));
-        
+
         return {
             labels: sortedEntries.map(entry => {
                 const date = new Date(entry.date);
@@ -795,6 +795,179 @@ export class DataStore {
             }),
             data: sortedEntries.map(entry => entry.amount)
         };
+    }
+
+    // Savings tracking methods
+
+    /**
+     * Add a new saving entry
+     * @param {number} year - Year of the saving
+     * @param {Date|string} date - Date of saving
+     * @param {number} amount - Amount saved
+     * @param {string} category - Saving category
+     * @param {string} [notes] - Optional notes
+     * @returns {Object} Added entry
+     */
+    addSavingEntry(year, date, amount, category, notes = '') {
+        if (!this.data.years[year]) {
+            this.addYear(year);
+        }
+
+        if (!this.data.years[year].savings) {
+            this.data.years[year].savings = [];
+        }
+
+        const entry = {
+            id: this.generateId(),
+            date: (date instanceof Date ? date : new Date(date)).toISOString(),
+            amount: parseFloat(amount),
+            category,
+            notes,
+            dateAdded: new Date().toISOString()
+        };
+
+        this.data.years[year].savings.push(entry);
+        this.saveData();
+        this.triggerEvent('savingEntryAdded', { year, savingEntry: entry });
+        return entry;
+    }
+
+    /**
+     * Update an existing saving entry
+     * @param {number} year - Year of the entry
+     * @param {string} entryId - Entry ID
+     * @param {Object} updates - Updates to apply
+     * @returns {boolean} Success status
+     */
+    updateSavingEntry(year, entryId, updates) {
+        if (!this.data.years[year] || !this.data.years[year].savings) return false;
+
+        const index = this.data.years[year].savings.findIndex(e => e.id === entryId);
+        if (index === -1) return false;
+
+        this.data.years[year].savings[index] = {
+            ...this.data.years[year].savings[index],
+            ...updates,
+            lastModified: new Date().toISOString()
+        };
+
+        this.saveData();
+        this.triggerEvent('savingEntryUpdated', {
+            year,
+            entryId,
+            savingEntry: this.data.years[year].savings[index]
+        });
+        return true;
+    }
+
+    /**
+     * Remove a saving entry
+     * @param {number} year - Year of the entry
+     * @param {string} entryId - Entry ID
+     * @returns {boolean} Success status
+     */
+    removeSavingEntry(year, entryId) {
+        if (!this.data.years[year] || !this.data.years[year].savings) return false;
+
+        const initialLength = this.data.years[year].savings.length;
+        this.data.years[year].savings = this.data.years[year].savings.filter(e => e.id !== entryId);
+
+        if (initialLength !== this.data.years[year].savings.length) {
+            this.saveData();
+            this.triggerEvent('savingEntryRemoved', { year, entryId });
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get all savings for a year
+     * @param {number} year - Year to fetch
+     * @returns {Array} Savings entries
+     */
+    getSavings(year) {
+        if (!this.data.years[year] || !this.data.years[year].savings) return [];
+        return [...this.data.years[year].savings];
+    }
+
+    /**
+     * Get total savings for a year
+     * @param {number} year - Year
+     * @returns {number} Total saved
+     */
+    getTotalSavings(year) {
+        return this.getSavings(year).reduce((sum, e) => sum + parseFloat(e.amount), 0);
+    }
+
+    /**
+     * Get savings grouped by category
+     * @param {number} year - Year
+     * @returns {Object} Totals by category
+     */
+    getSavingsByCategory(year) {
+        const categories = {};
+        this.getSavings(year).forEach(entry => {
+            if (!categories[entry.category]) categories[entry.category] = 0;
+            categories[entry.category] += parseFloat(entry.amount);
+        });
+        return categories;
+    }
+
+    /**
+     * Get data for savings timeline chart
+     * @param {number} year - Year
+     * @returns {Object} Chart data
+     */
+    getSavingsChartData(year) {
+        const sorted = [...this.getSavings(year)].sort((a, b) => new Date(a.date) - new Date(b.date));
+        return {
+            labels: sorted.map(e => {
+                const d = new Date(e.date);
+                return `${d.getMonth() + 1}/${d.getFullYear()}`;
+            }),
+            data: sorted.map(e => e.amount)
+        };
+    }
+
+    /**
+     * Calculate average monthly savings
+     * @param {number} year - Year
+     * @returns {number} Average amount
+     */
+    getMonthlySavingsAverage(year) {
+        const monthly = {};
+        this.getSavings(year).forEach(e => {
+            const d = new Date(e.date);
+            const key = `${d.getFullYear()}-${d.getMonth()}`;
+            if (!monthly[key]) monthly[key] = 0;
+            monthly[key] += parseFloat(e.amount);
+        });
+        const months = Object.keys(monthly).length;
+        if (months === 0) return 0;
+        return Object.values(monthly).reduce((a, b) => a + b, 0) / months;
+    }
+
+    /**
+     * Get total salary for a given year
+     * @param {number} year - Year
+     * @returns {number} Total salary
+     */
+    getTotalSalaryForYear(year) {
+        return this.data.salaryHistory
+            .filter(entry => new Date(entry.date).getFullYear() === parseInt(year))
+            .reduce((sum, entry) => sum + parseFloat(entry.amount), 0);
+    }
+
+    /**
+     * Calculate savings rate for a year
+     * @param {number} year - Year
+     * @returns {number} Savings rate percentage
+     */
+    getSavingsRate(year) {
+        const totalSalary = this.getTotalSalaryForYear(year);
+        if (totalSalary === 0) return 0;
+        return (this.getTotalSavings(year) / totalSalary) * 100;
     }
     
     // Utils

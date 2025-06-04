@@ -29,6 +29,10 @@ export function initCharts(chartLibrary = window.Chart) {
     
     // Initialize salary chart
     initSalaryGrowthChart(chartLibrary);
+
+    // Initialize savings charts
+    initSavingsDistributionChart(chartLibrary);
+    initSavingsTimelineChart(chartLibrary);
     
     // Set up chart update on data change
     document.addEventListener('dataUpdated', () => {
@@ -55,6 +59,8 @@ export function renderTrendsCharts() {
     updateAssetCategoriesTimeChart();
     updateGrowthVsBenchmarksChart();
     updateSalaryGrowthChart();
+    updateSavingsDistributionChart();
+    updateSavingsTimelineChart();
 }
 
 /**
@@ -613,14 +619,115 @@ function initSalaryGrowthChart(chartLibrary = window.Chart) {
  */
 export function updateSalaryGrowthChart() {
     if (!charts.salaryGrowth) return;
-    
+
     const dataStore = getDataStore();
     const chartData = dataStore.getSalaryChartData();
-    
+
     charts.salaryGrowth.data.labels = chartData.labels;
     charts.salaryGrowth.data.datasets[0].data = chartData.data;
-    
+
     charts.salaryGrowth.update();
+}
+
+/**
+ * Initialize savings distribution chart
+ * @param {Object} chartLibrary - Chart library
+ */
+function initSavingsDistributionChart(chartLibrary = window.Chart) {
+    const ctx = document.getElementById('savings-distribution-chart');
+    if (!ctx) return;
+
+    if (charts.savingsDistribution) {
+        charts.savingsDistribution.destroy();
+    }
+
+    charts.savingsDistribution = new chartLibrary(ctx, {
+        type: 'pie',
+        data: { labels: [], datasets: [{ data: [], backgroundColor: [
+            'rgba(58, 123, 213, 0.7)',
+            'rgba(0, 209, 178, 0.7)',
+            'rgba(255, 221, 87, 0.7)',
+            'rgba(255, 56, 96, 0.7)',
+            'rgba(142, 68, 173, 0.7)',
+            'rgba(52, 152, 219, 0.7)',
+            'rgba(46, 204, 113, 0.7)'
+        ], borderWidth: 1 }] },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+/**
+ * Update savings distribution chart
+ */
+export function updateSavingsDistributionChart() {
+    if (!charts.savingsDistribution) return;
+    const dataStore = getDataStore();
+    const yearSelect = document.getElementById('year-select');
+    const year = yearSelect ? yearSelect.value : dataStore.getCurrentYear();
+    const data = dataStore.getSavingsByCategory(parseInt(year));
+
+    charts.savingsDistribution.data.labels = Object.keys(data);
+    charts.savingsDistribution.data.datasets[0].data = Object.values(data);
+    charts.savingsDistribution.update();
+}
+
+/**
+ * Initialize savings timeline chart
+ * @param {Object} chartLibrary - Chart library
+ */
+function initSavingsTimelineChart(chartLibrary = window.Chart) {
+    const ctx = document.getElementById('savings-timeline-chart');
+    if (!ctx) return;
+
+    if (charts.savingsTimeline) {
+        charts.savingsTimeline.destroy();
+    }
+
+    charts.savingsTimeline = new chartLibrary(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [{
+            label: 'Savings',
+            data: [],
+            backgroundColor: 'rgba(58, 123, 213, 0.1)',
+            borderColor: 'rgba(58, 123, 213, 1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.1
+        }] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { callback: v => '£' + v.toLocaleString() }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: ctx => '£' + ctx.raw.toLocaleString()
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Update savings timeline chart
+ */
+export function updateSavingsTimelineChart() {
+    if (!charts.savingsTimeline) return;
+
+    const dataStore = getDataStore();
+    const yearSelect = document.getElementById('year-select');
+    const year = yearSelect ? yearSelect.value : dataStore.getCurrentYear();
+    const chartData = dataStore.getSavingsChartData(parseInt(year));
+
+    charts.savingsTimeline.data.labels = chartData.labels;
+    charts.savingsTimeline.data.datasets[0].data = chartData.data;
+    charts.savingsTimeline.update();
 }
 
 /**
@@ -646,6 +753,12 @@ export function renderChart(chartId) {
             break;
         case 'salary-growth-chart':
             updateSalaryGrowthChart();
+            break;
+        case 'savings-distribution-chart':
+            updateSavingsDistributionChart();
+            break;
+        case 'savings-timeline-chart':
+            updateSavingsTimelineChart();
             break;
     }
 }
