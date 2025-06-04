@@ -548,51 +548,31 @@ function saveSavingForm(yearId) {
  * Show the add milestone modal
  */
 export function showAddMilestoneModal() {
-    const modalBody = document.getElementById('modal-body');
-    if (!modalBody) return;
-    
-    // Create form HTML
-    modalBody.innerHTML = `
+    const modalContent = `
         <h2>Add New Milestone</h2>
-        <form id="add-milestone-form">
-            <div class="form-group">
-                <label for="milestone-name">Name:</label>
-                <input type="text" id="milestone-name" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="milestone-target">Target Net Worth (£):</label>
-                <input type="number" id="milestone-target" class="form-control" min="0" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="milestone-date">Target Date:</label>
-                <input type="date" id="milestone-date" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label for="milestone-notes">Notes:</label>
-                <textarea id="milestone-notes" class="form-control"></textarea>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="cancel-btn" onclick="document.getElementById('modal-container').classList.add('modal-hidden')">Cancel</button>
-                <button type="submit" class="save-btn">Save</button>
-            </div>
-        </form>
+        <div class="form-group">
+            <label for="milestone-name">Name:</label>
+            <input type="text" id="milestone-name" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="milestone-target">Target Net Worth (£):</label>
+            <input type="number" id="milestone-target" class="form-control" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="milestone-date">Target Date:</label>
+            <input type="date" id="milestone-date" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="milestone-notes">Notes:</label>
+            <textarea id="milestone-notes" class="form-control"></textarea>
+        </div>
+        <div class="form-actions">
+            <button id="cancel-milestone" class="cancel-btn">Cancel</button>
+            <button id="save-milestone" class="save-btn">Add Milestone</button>
+        </div>
     `;
-    
-    // Show modal
-    const modalContainer = document.getElementById('modal-container');
-    if (modalContainer) {
-        modalContainer.classList.remove('modal-hidden');
-        modalContainer.classList.add('modal-visible');
-    }
-    
-    // Set up form submission
-    const form = document.getElementById('add-milestone-form');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            saveMilestoneForm();
-        });
-    }
+
+    showModal(modalContent, 'add-milestone');
 }
 
 /**
@@ -626,7 +606,7 @@ function saveMilestoneForm() {
     dataStore.data.milestones.push({
         id: dataStore.generateId(),
         name,
-        target,
+        amount: target,
         date,
         notes,
         dateAdded: new Date().toISOString(),
