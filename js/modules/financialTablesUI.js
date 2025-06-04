@@ -113,8 +113,12 @@ function renderAssetsTable(yearId) {
             <td>${asset.name || ''}</td>
             <td>${formatCurrency(asset.value)}</td>
             <td class="item-actions">
-                <button class="action-btn edit-btn" data-id="${asset.id}">Edit</button>
-                <button class="action-btn delete-btn" data-id="${asset.id}">Delete</button>
+                <button class="action-btn edit-btn" data-id="${asset.id}">
+                    <i class="fa-solid fa-edit"></i> Edit
+                </button>
+                <button class="action-btn delete-btn" data-id="${asset.id}">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
             </td>
         `;
         
@@ -184,8 +188,12 @@ function renderLiabilitiesTable(yearId) {
             <td>${liability.name || liability.category}</td>
             <td>${formatCurrency(liability.value)}</td>
             <td class="item-actions">
-                <button class="action-btn edit-btn" data-id="${liability.id}">Edit</button>
-                <button class="action-btn delete-btn" data-id="${liability.id}">Delete</button>
+                <button class="action-btn edit-btn" data-id="${liability.id}">
+                    <i class="fa-solid fa-edit"></i> Edit
+                </button>
+                <button class="action-btn delete-btn" data-id="${liability.id}">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
             </td>
         `;
         

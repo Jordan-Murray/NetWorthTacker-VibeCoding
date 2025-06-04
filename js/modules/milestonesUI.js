@@ -33,10 +33,10 @@ function renderMilestonesTable(milestones) {
             <td>
                 <div class="btn-group btn-group-sm" role="group">
                     <button type="button" class="btn btn-outline-primary edit-milestone" data-id="${milestone.id}">
-                        <i class="fas fa-edit"></i>
+                        <i class="fa-solid fa-edit"></i> Edit
                     </button>
                     <button type="button" class="btn btn-outline-danger delete-milestone" data-id="${milestone.id}">
-                        <i class="fas fa-trash"></i>
+                        <i class="fa-solid fa-trash"></i> Delete
                     </button>
                 </div>
             </td>

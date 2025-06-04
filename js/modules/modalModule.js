@@ -256,15 +256,34 @@ function setupAddMilestoneActions() {
     if (saveMilestoneBtn) {
         const newBtn = saveMilestoneBtn.cloneNode(true);
         saveMilestoneBtn.parentNode.replaceChild(newBtn, saveMilestoneBtn);
-        
+
         newBtn.addEventListener('click', () => {
-            const name = document.getElementById('milestone-name').value;
-            const target = document.getElementById('milestone-target').value;
-            const notes = document.getElementById('milestone-notes').value;
-            
-            if (name && target && !isNaN(parseFloat(target)) && parseFloat(target) > 0) {
-                initMilestonesUI();
-                hideModal();
+            const name = document.getElementById('milestone-name').value.trim();
+            const targetValue = parseFloat(document.getElementById('milestone-target').value);
+            const date = document.getElementById('milestone-date').value;
+            const notes = document.getElementById('milestone-notes').value.trim();
+
+            if (name && !isNaN(targetValue) && targetValue >= 0 && date) {
+                try {
+                    const dataStore = getDataStore();
+                    if (!dataStore.data.milestones) {
+                        dataStore.data.milestones = [];
+                    }
+                    dataStore.data.milestones.push({
+                        id: dataStore.generateId(),
+                        name,
+                        amount: targetValue,
+                        date,
+                        notes,
+                        dateAdded: new Date().toISOString(),
+                        completed: false
+                    });
+                    dataStore.saveData();
+                    initMilestonesUI();
+                    hideModal();
+                } catch (error) {
+                    alert('Error adding milestone: ' + error.message);
+                }
             } else {
                 alert('Please fill all required fields with valid values');
             }
@@ -280,16 +299,18 @@ function setupAddSalaryActions() {
     if (saveSalaryBtn) {
         const newBtn = saveSalaryBtn.cloneNode(true);
         saveSalaryBtn.parentNode.replaceChild(newBtn, saveSalaryBtn);
-        
+
         newBtn.addEventListener('click', () => {
             const dateInput = document.getElementById('salary-date').value;
             const company = document.getElementById('salary-company').value;
             const title = document.getElementById('salary-title').value;
             const amountInput = document.getElementById('salary-amount').value;
             const amount = parseFloat(amountInput);
-            
+
             if (dateInput && company && title && !isNaN(amount) && amount >= 0) {
                 try {
+                    const dataStore = getDataStore();
+                    dataStore.addSalaryEntry(new Date(dateInput), company, title, amount);
                     initSalaryTrackerUI();
                     hideModal();
                 } catch (error) {
