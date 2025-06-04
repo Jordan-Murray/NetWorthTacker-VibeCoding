@@ -188,7 +188,17 @@
                 <div class="milestone-tracker">
                     <h3>Net Worth Milestones <button id="add-milestone" class="add-btn">+ Add Milestone</button></h3>
                     <div id="milestones-container">
-                        <!-- Will be populated by JavaScript -->
+                        <table id="milestones-table">
+                            <thead>
+                                <tr>
+                                    <th>Milestone</th>
+                                    <th>Target</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="milestones-table-body"></tbody>
+                        </table>
+                        <div id="milestones-chart"></div>
                     </div>
                 </div>
             </div>
