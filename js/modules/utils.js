@@ -40,6 +40,20 @@ export function formatDateString(dateString) {
 }
 
 /**
+ * Format a full date to a short readable string
+ * @param {Date|string|number} date - Date to format
+ * @returns {string} Formatted date (e.g., "1 Jan 2023")
+ */
+export function formatDate(date) {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-GB', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+/**
  * Get random color with specific opacity
  * @param {number} opacity - The opacity value (0-1)
  * @returns {string} RGBA color string

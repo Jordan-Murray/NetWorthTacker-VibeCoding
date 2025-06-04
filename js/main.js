@@ -17,6 +17,7 @@ import { initCharts, renderDashboardCharts, renderTrendsCharts } from './modules
 import { initFinancialTables } from './modules/financialTablesUI.js';
 import { initMilestonesUI } from './modules/milestonesUI.js';
 import { initSalaryTrackerUI } from './modules/salaryTrackerUI.js';
+import { initSavingsTrackerUI } from './modules/savingsTrackerUI.js';
 import { initYearManager } from './modules/yearManagerUI.js';
 import { initImportExport } from './modules/importExportModule.js';
 import { initDashboard } from './modules/dashboardUI.js';
@@ -46,6 +47,7 @@ function initializeApp() {
     initFinancialTables();
     initMilestonesUI();
     initSalaryTrackerUI();
+    initSavingsTrackerUI();
     initDashboard(); // Initialize dashboard
     initFormHandlerUI(); // Initialize form handlers
     
