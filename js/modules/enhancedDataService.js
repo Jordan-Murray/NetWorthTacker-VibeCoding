@@ -588,13 +588,47 @@ export class DataStore {
         
         return false;
     }
-    
+
     /**
      * Get all milestones
      * @returns {Array} Milestones
      */
     getMilestones() {
         return [...this.data.milestones].sort((a, b) => a.amount - b.amount);
+    }
+
+    /**
+     * Get a single milestone by ID
+     * @param {string} milestoneId - Milestone ID
+     * @returns {Object|null} The milestone or null if not found
+     */
+    getMilestone(milestoneId) {
+        return this.data.milestones.find(m => m.id === milestoneId) || null;
+    }
+
+    /**
+     * Update an existing milestone
+     * @param {string} milestoneId - Milestone ID
+     * @param {Object} updates - Updates to apply
+     * @returns {boolean} Success status
+     */
+    updateMilestone(milestoneId, updates) {
+        const index = this.data.milestones.findIndex(m => m.id === milestoneId);
+        if (index === -1) return false;
+
+        this.data.milestones[index] = {
+            ...this.data.milestones[index],
+            ...updates,
+            lastModified: new Date().toISOString()
+        };
+
+        this.updateMilestoneStatus();
+        this.saveData();
+        this.triggerEvent('milestoneUpdated', {
+            milestoneId,
+            milestone: this.data.milestones[index]
+        });
+        return true;
     }
     
     /**
